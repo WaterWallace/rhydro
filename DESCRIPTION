@@ -1,11 +1,15 @@
 Package: rhydro
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Tools for hydrographic data processing in R
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
+Author: Stephen Wallace
+Maintainer: Stephen Wallace <stephen.wallace@des.qld.gov.au>
+Description: Hydro tools
+    Such as
+    And
+    Things
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
+Imports: ccInterp, pracma, ggplot2, viridisLite, viridis, influxdbclient, Rlibeemd, reshape2, signal, zoo, MASS, oce, dplyr, EMD, data.table, repmod, stats
+RoxygenNote: 7.2.3
