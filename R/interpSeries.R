@@ -6,7 +6,7 @@
 #' @param location Numeric, location along the line (y-axis) of which to interpolate on the x-axis
 #'
 #' @return dataframe
-#' @importFrom(stats,approxfun)
+#' @importFrom stats approxfun
 #'
 #' @examples
 #' xs <- data.frame(chain = c(1,2,3,4,5,6,7),

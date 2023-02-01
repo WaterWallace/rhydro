@@ -11,5 +11,6 @@ Description: Hydro tools
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Imports: ccInterp, pracma, ggplot2, viridisLite, viridis, influxdbclient, Rlibeemd, reshape2, signal, zoo, MASS, oce, dplyr, EMD, data.table, repmod, stats
+Imports: ccInterp, ggplot2, pracma, viridisLite, viridis, influxdbclient, Rlibeemd, reshape2, signal, zoo, MASS, oce, dplyr, EMD, data.table, repmod, stats
+Suggests: 
 RoxygenNote: 7.2.3

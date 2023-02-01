@@ -6,7 +6,7 @@
 #' @param ght Numeric
 #'
 #' @return value
-#' @importFrom(pracma,trapz)
+#' @importFrom pracma trapz
 #'
 #' @examples
 #' xs <- data.frame(chain = c(1,2,3,4,5,6,7),
