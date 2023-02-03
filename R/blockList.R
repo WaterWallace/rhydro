@@ -1,7 +1,5 @@
 #' Creates a list of blocks, with a start time, end time and duration
 #'
-#' Outputs gaps of a defined gap length
-#'
 #' @param tsdata A dataframe, with first column POSIXct time
 #' @param minGap Numeric, number of minutes to record a gap
 #'
@@ -38,22 +36,6 @@
 #'
 #'
 #'
-as.numeric(randomMinutes)
-
-
- library(dplyr)
- # create a df of hourly times
- randomMinutes <- rnorm(1000, mean = 60, sd = 30) # create 1000 random intervals
- randomMinutes[randomMinutes < 1] <- 1 # set less than 1 minute to 1
- randomMinutes <- as.POSIXct(cumsum(randomMinutes)*60, origin="2021-01-01")
- df <- data.frame(randomMinutes)
-
- gaps <- GapList(df, 120)
- blocks <- blockList(gaps, df)
-
- head(gaps)
- head(blocks)
-
 
 
 blockList <- function(gaps, ts)
@@ -78,13 +60,3 @@ blockList <- function(gaps, ts)
 
   return (blocks)
 }
-
-
-library(WQI)
-??WQI
-Limits <- PathFinder(ProbeType = "OPUS", PathLength = 5)
-Limits$NO3LowerLim
-#Limits$NO3LowerLim
-
-??rhydro
-
