@@ -182,7 +182,7 @@ ceemdanFilter <- function(time, data, output=0, method="ceemdan", d1 = 16, d2 = 
 
   TideTypes <- addAllCols(imfs, as.vector(Periods$Period), d1, d2) #the sum of all imfs of each period of TideType
   #timestamp <- as.data.frame(time)
-  TypesOut <- data.frame(time, round(TideTypes, digits=3))
+  TypesOut <- data.frame(time, signif(TideTypes, digits=4))
 
   outputList <- list()
   outputList[["Periods"]] <- Periods
@@ -203,7 +203,3 @@ ceemdanFilter <- function(time, data, output=0, method="ceemdan", d1 = 16, d2 = 
     return(outputList)
   }
 }
-
-
-?ceemdanFilter
-

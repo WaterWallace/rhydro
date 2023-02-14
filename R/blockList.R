@@ -51,7 +51,9 @@ blockList <- function(gaps, ts)
 
   # convert gaps, to blocks
   blocks <- data.frame(Start = c(ts[1], gaps$end), End = c(gaps$start, ts[length(ts)]) ) # blocks in minutes
-  blocks$dur <- (blocks$End - blocks$Start) # calc duration of data block
+  #blocks$dur <- (blocks$End - blocks$Start) # calc duration of data block
+
+  blocks$dur <- difftime(blocks$End, blocks$Start, units="mins")
   blocks <- blocks %>% dplyr:::filter(dur > 360) # minimum duration for block, otherwise gap
 
   # convert from minutes to posix

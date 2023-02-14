@@ -2,6 +2,7 @@
 
 export(GapList)
 export(PhasedAreas)
+export(addTS)
 export(areaLookup)
 export(blockList)
 export(calcArea)
