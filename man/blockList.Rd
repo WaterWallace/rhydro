@@ -4,12 +4,14 @@
 \alias{blockList}
 \title{Creates a list of blocks, with a start time, end time and duration}
 \usage{
-blockList(gaps, ts)
+blockList(gaps, ts, minblock = 360)
 }
 \arguments{
-\item{tsdata}{A dataframe, with first column POSIXct time}
+\item{gaps}{A dataframe, with first column POSIXct time}
 
-\item{minGap}{Numeric, number of minutes to record a gap}
+\item{ts}{Numeric, number of minutes to record a gap}
+
+\item{minblock}{Numeric, minimum length of a "block" in minutes}
 }
 \value{
 dataframe listing each gap start, end and duration.
@@ -19,8 +21,6 @@ Creates a list of blocks, with a start time, end time and duration
 }
 \examples{
 
-
-library(dplyr)
 # create a df of hourly times
 
 randomMinutes <- rnorm(1000, mean = 60, sd = 30) # create 1000 random intervals
@@ -28,18 +28,18 @@ randomMinutes[randomMinutes < 1] <- 1 # set less than 1 minute to 1
 randomMinutes <- as.POSIXct("2021-01-01") + cumsum(randomMinutes)*60 # add to a start point
 
 # Gaplist of a single column dataframe
-head(GapList(data.frame(randomMinutes), 60)) # 60 minutes minimum gap
-head(GapList(data.frame(randomMinutes), 120)) # 120 minutes minimum gap
-head(GapList(data.frame(randomMinutes), 180)) # 180 minutes minimum gap
+gaps <- GapList(data.frame(randomMinutes), 120) # 180 minutes minimum gap
 
 # build a data frame of times and values
 df <- data.frame(Time = randomMinutes,
                 data = cumsum(rnorm(1000, mean = 0, sd = 1))   # add a row of random numbers
 )
 
-plot(df)
-head(GapList(df, 120)) # Gaplist of a multi column dataframe (same result)
 
+ten <- blockList(gaps, df, minblock = 10) # at least 10 minutes per block
+day <- blockList(gaps, df, minblock = 1440) # day long blocks only
 
+head(ten)
+head(day)
 
 }

@@ -1,15 +1,14 @@
 #' Creates a list of blocks, with a start time, end time and duration
 #'
-#' @param tsdata A dataframe, with first column POSIXct time
-#' @param minGap Numeric, number of minutes to record a gap
+#' @param gaps A dataframe, with first column POSIXct time
+#' @param ts Numeric, number of minutes to record a gap
+#' @param minblock Numeric, minimum length of a "block" in minutes
 #'
 #' @return dataframe listing each gap start, end and duration.
 #' @importFrom dplyr filter
 #'
 #' @examples
 #'
-#'
-#' library(dplyr)
 #' # create a df of hourly times
 #'
 #' randomMinutes <- rnorm(1000, mean = 60, sd = 30) # create 1000 random intervals
@@ -17,30 +16,23 @@
 #' randomMinutes <- as.POSIXct("2021-01-01") + cumsum(randomMinutes)*60 # add to a start point
 #'
 #' # Gaplist of a single column dataframe
-#' head(GapList(data.frame(randomMinutes), 60)) # 60 minutes minimum gap
-#' head(GapList(data.frame(randomMinutes), 120)) # 120 minutes minimum gap
-#' head(GapList(data.frame(randomMinutes), 180)) # 180 minutes minimum gap
+#' gaps <- GapList(data.frame(randomMinutes), 120) # 180 minutes minimum gap
 #'
 #' # build a data frame of times and values
 #' df <- data.frame(Time = randomMinutes,
 #'                 data = cumsum(rnorm(1000, mean = 0, sd = 1))   # add a row of random numbers
 #' )
 #'
-#' plot(df)
-#' head(GapList(df, 120)) # Gaplist of a multi column dataframe (same result)
 #'
+#' ten <- blockList(gaps, df, minblock = 10) # at least 10 minutes per block
+#' day <- blockList(gaps, df, minblock = 1440) # day long blocks only
 #'
+#' head(ten)
+#' head(day)
 #'
 #' @export
-#'
-#'
-#'
-#'
-
-
-blockList <- function(gaps, ts)
+blockList <- function(gaps, ts, minblock = 360)
 {
-
 
   ts <- na.omit(ts)
   ts <- ts[,1]
@@ -51,10 +43,9 @@ blockList <- function(gaps, ts)
 
   # convert gaps, to blocks
   blocks <- data.frame(Start = c(ts[1], gaps$end), End = c(gaps$start, ts[length(ts)]) ) # blocks in minutes
-  #blocks$dur <- (blocks$End - blocks$Start) # calc duration of data block
+  blocks$dur <- (blocks$End - blocks$Start) # calc duration of data block
 
-  blocks$dur <- difftime(blocks$End, blocks$Start, units="mins")
-  blocks <- blocks %>% dplyr:::filter(dur > 360) # minimum duration for block, otherwise gap
+  blocks <- blocks %>% dplyr::filter(dur > minblock) # minimum duration for block, otherwise gap
 
   # convert from minutes to posix
   blocks$Start <- as.POSIXct(blocks$Start*60, origin="1970-01-01")
@@ -62,3 +53,6 @@ blockList <- function(gaps, ts)
 
   return (blocks)
 }
+
+?ccInterp::StevesCoolRandomTS()
+
