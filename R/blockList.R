@@ -1,7 +1,7 @@
 #' Creates a list of blocks, with a start time, end time and duration
 #'
-#' @param gaps A dataframe, with first column POSIXct time
-#' @param ts Numeric, number of minutes to record a gap
+#' @param gaps Dataframe, output from GapList()
+#' @param ts Dataframe, with first column POSIXct time
 #' @param minblock Numeric, minimum length of a "block" in minutes
 #'
 #' @return dataframe listing each gap start, end and duration.
