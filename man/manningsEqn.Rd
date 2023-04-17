@@ -20,10 +20,10 @@ dataframe of xs summary with added discharge
 Adds discharge to a discharge summary
 }
 \examples{
-xs <- data.frame(chain = c(1,2,3,4,5,6,7),
+xs <- data.frame(chain = c(0,20,30,40,50,60,70),
     rl = c(10,9,7,4,8,9,11)
 )
-summary <- xsSummary(xs)
+summary <- xsSummary(xs, by = 1)
 manningsEqn(summary, n=0.05, s=0.0015)
 
 }

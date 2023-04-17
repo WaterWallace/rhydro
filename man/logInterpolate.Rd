@@ -2,12 +2,13 @@
 % Please edit documentation in R/logInterpolate.R
 \name{logInterpolate}
 \alias{logInterpolate}
-\title{Calculate cross sectional area for a a range of heights}
+\title{Lograrithmic interpolation between points}
 \usage{
-logInterpolate(rating, num, logOffset = 0)
+logInterpolate(rating, num, logOffset = 0, base = 10)
 }
 \arguments{
-\item{rating}{dataframe, with columns for height and area}
+\item{rating}{dataframe, with columns for reference and a lookup value,
+i.e. a height reference, and a lookup area.}
 
 \item{num}{Numeric or vector for desired values}
 
@@ -19,23 +20,40 @@ i.e. one row less than the first positive value}
 dataframe of height and area
 }
 \description{
-Applies calcArea at intervals to produce a lookup table
-    Below the lowest postive number in the second column is
-    set to zero.  It is not interpolated to zero.
+Intpolates a set of points logarithmically
+    Either sets its own log offset based on inputs, or as determined
 }
 \examples{
-xs <- data.frame(chain = c(1,2,3,4,5,6,7),
-    rl = c(10,9,7,4,8,9,11)
+rating <- data.frame(level = c(2,3,4,6,10),
+  discharge = c(0.1,10,100,1000,4000)
+                      )
+
+logInterpolate(rating, 3.5)
+logInterpolate(rating, c(3.5, 5.5, 9.5))
+
+plot(rating)
+level <- 2.9
+logInterpolate(rating, level, logOffset = 1.9)
+points(level,
+       logInterpolate(rating, level, logOffset = 1.9),
+       col="red",
+       pch=19
+       )
+#plot(rating)
+level <- 4.5
+logInterpolate(rating, level)
+points(level,
+       logInterpolate(rating, level),
+       col="blue",
+       pch=19
 )
-lookupTable <- areaLookup(xs, interval = 1)
-# with default used for logOffset ( 4 in this case)
-logInterpolate(lookupTable, 7.5)
-# plot cross section
-plot(xs)
-# plot 1m interval lookup table
-plot(lookupTable)
-# plot log interpolated values
-heights <- seq(min(lookupTable$height), max(lookupTable$height), by = 0.01 )
-lines(heights, logInterpolate(lookupTable, heights), col="red")
+#plot(rating)
+level <- 9
+logInterpolate(rating, level)
+points(level,
+       logInterpolate(rating, level),
+       col="orange",
+       pch=19
+)
 
 }
