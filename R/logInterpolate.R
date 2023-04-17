@@ -1,8 +1,7 @@
-#' Calculate cross sectional area for a a range of heights
+#' Lograrithmic interpolation between points
 #'
-#' Applies calcArea at intervals to produce a lookup table
-#'     Below the lowest postive number in the second column is
-#'     set to zero.  It is not interpolated to zero.
+#' Intpolates a set of points logarithmically
+#'     Either sets its own log offset based on inputs, or as determined
 #'
 #' @param rating dataframe, with columns for height and area
 #' @param num Numeric or vector for desired values
@@ -13,36 +12,82 @@
 #' @return dataframe of height and area
 #'
 #' @examples
-#' xs <- data.frame(chain = c(1,2,3,4,5,6,7),
-#'     rl = c(10,9,7,4,8,9,11)
+#' rating <- data.frame(discharge = c(0.1,10,100,1000,2000,10000),
+#'     level = c(2,3,4,5,6,10)
 #' )
-#' lookupTable <- areaLookup(xs, interval = 1)
-#' # with default used for logOffset ( 4 in this case)
-#' logInterpolate(lookupTable, 7.5)
-#' # plot cross section
-#' plot(xs)
-#' # plot 1m interval lookup table
-#' plot(lookupTable)
-#' # plot log interpolated values
-#' heights <- seq(min(lookupTable$height), max(lookupTable$height), by = 0.01 )
-#' lines(heights, logInterpolate(lookupTable, heights), col="red")
+#'
+#' plot(rating)
+#' logInterpolate(rating, 10)
+#'
+#' logInterpolate(rating, 2.5, logOffset = 1.9)
+#' logInterpolate(rating, 9, logOffset = 1.9)
 #'
 #' @export
-#'
-logInterpolate <- function (rating, num, logOffset = 0)
+logInterpolate <- function (rating, num, logOffset = 0, interpbase = 10)
 {
-  ctf <- min(rating[rating[2] > 0,][1])
+  # rating[,1] = Level, i.e. reference
+  # rating[,2] = Discharge i.e. lookup value
+
+  ref <- rating[1]
+  lookup <- rating[2]
+
+  ctf <- min(rating[lookup > 0,][1])
 
   if (logOffset == 0) {
-    logOffset <- max(rating[rating[2] <= 0,][1]) # max height, of outputs less than or equal to zero
+
+    zeroQ <- rating[lookup <= 0,]
+    if (nrow(zeroQ) > 0)
+    {
+      logOffset <- max(zeroQ[1]) # max height, of outputs less than or equal to zero
+    }else{
+      logOffset <- min(ref)-0.01
+    }
   }
-  dfOffs <- rating[, 1] - logOffset
+  dfOffs <- ref - logOffset
   num <- num - logOffset
-  f.logarea <- approxfun(log(dfOffs), log(rating[, 2]))
-  interpvalue <- exp(f.logarea(log(num)))
+  f.logarea <- approxfun(log(dfOffs, base=interpbase)[,1], log(lookup, base=interpbase)[,1])
+  interpvalue <- interpbase ^ ( f.logarea(log(num, base=interpbase)) )
 
   interpvalue <- data.frame(ht = (num+logOffset), q = interpvalue)
   interpvalue$q[interpvalue$ht < ctf] <- 0
 
   return(interpvalue$q)
 }
+
+log(3.5, base=10)
+
+num <- 6
+#logOffset <- 0
+
+
+rating <- data.frame(level = c(2,3,4,6,10),
+  discharge = c(0.1,10,100,1000,4000)
+                      )
+plot(rating)
+level <- 2.9
+logInterpolate(rating, level, logOffset = 1.9)
+points(level,
+       logInterpolate(rating, level, logOffset = 1.9),
+       col="red",
+       pch=19
+       )
+
+#plot(rating)
+level <- 4.5
+logInterpolate(rating, level)
+points(level,
+       logInterpolate(rating, level),
+       col="blue",
+       pch=19
+)
+
+#plot(rating)
+level <- 9
+logInterpolate(rating, level)
+points(level,
+       logInterpolate(rating, level),
+       col="orange",
+       pch=19
+)
+
+?plot()

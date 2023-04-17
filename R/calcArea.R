@@ -1,6 +1,6 @@
 #' Calculate Cross sectional area for a particular height
 #'
-#' Converts continuous BMI variable to BMI groups.
+#' Interpolates, trims cross section, then applies trapz()
 #'
 #' @param xscalc dataframe, with columns "chain" and "rl".
 #' @param ght Numeric

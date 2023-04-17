@@ -7,9 +7,9 @@
 blockList(gaps, ts, minblock = 360)
 }
 \arguments{
-\item{gaps}{A dataframe, with first column POSIXct time}
+\item{gaps}{Dataframe, output from GapList()}
 
-\item{ts}{Numeric, number of minutes to record a gap}
+\item{ts}{Dataframe, with first column POSIXct time}
 
 \item{minblock}{Numeric, minimum length of a "block" in minutes}
 }

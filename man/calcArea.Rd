@@ -15,7 +15,7 @@ calcArea(xscalc, ght)
 value
 }
 \description{
-Converts continuous BMI variable to BMI groups.
+Interpolates, trims cross section, then applies trapz()
 }
 \examples{
 xs <- data.frame(chain = c(1,2,3,4,5,6,7),
