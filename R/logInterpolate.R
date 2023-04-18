@@ -1,7 +1,11 @@
-#' Lograrithmic interpolation between points
+#' Logarithmic interpolation between points
 #'
-#' Intpolates a set of points logarithmically
+#' Interpolates a set of points logarithmic ally
 #'     Either sets its own log offset based on inputs, or as determined
+#'     When subtracting a logoffset from the reference goes negative,
+#'     NA will be returned for that range
+#'     i.e. reference 2,2.5, subtracting logOffset 2.1, results in -0.1, 0.4,
+#'     anything in the range of 2-2.5 is NA.
 #'
 #' @param rating dataframe, with columns for reference and a lookup value,
 #'      i.e. a height reference, and a lookup area.
@@ -13,36 +17,19 @@
 #' @return dataframe of height and area
 #'
 #' @examples
-#' rating <- data.frame(level = c(2,3,4,6,10),
+#' rating <- data.frame(level = c(2,2.5,4,6,10),
 #'   discharge = c(0.1,10,100,1000,4000)
 #'                       )
 #'
-#' logInterpolate(rating, 3.5)
-#' logInterpolate(rating, c(3.5, 5.5, 9.5))
+#' logInterpolate(rating, 2.4)
+#' logInterpolate(rating, c(2.4, 5.5, 9.5))
+#' logInterpolate(rating, c(2.4, 5.5, 9.5), logOffset = 2.1)
 #'
 #' plot(rating)
-#' level <- 2.9
-#' logInterpolate(rating, level, logOffset = 1.9)
-#' points(level,
-#'        logInterpolate(rating, level, logOffset = 1.9),
-#'        col="red",
-#'        pch=19
-#'        )
-#' #plot(rating)
-#' level <- 4.5
-#' logInterpolate(rating, level)
-#' points(level,
-#'        logInterpolate(rating, level),
-#'        col="blue",
-#'        pch=19
-#' )
-#' #plot(rating)
-#' level <- 9
-#' logInterpolate(rating, level)
-#' points(level,
-#'        logInterpolate(rating, level),
-#'        col="orange",
-#'        pch=19
+#' values <- pretty(range(rating$level), n=20)
+#' lines(values,
+#'  logInterpolate(rating,values),
+#'  col="red"
 #' )
 #'
 #' @export
@@ -74,8 +61,3 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
 
   return(interpvalue$q)
 }
-
-
-
-
-

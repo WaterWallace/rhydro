@@ -24,7 +24,7 @@ Intpolates a set of points logarithmically
     Either sets its own log offset based on inputs, or as determined
 }
 \examples{
-rating <- data.frame(level = c(2,3,4,6,10),
+rating <- data.frame(level = c(2,2.5,4,6,10),
   discharge = c(0.1,10,100,1000,4000)
                       )
 
@@ -32,28 +32,10 @@ logInterpolate(rating, 3.5)
 logInterpolate(rating, c(3.5, 5.5, 9.5))
 
 plot(rating)
-level <- 2.9
-logInterpolate(rating, level, logOffset = 1.9)
-points(level,
-       logInterpolate(rating, level, logOffset = 1.9),
-       col="red",
-       pch=19
-       )
-#plot(rating)
-level <- 4.5
-logInterpolate(rating, level)
-points(level,
-       logInterpolate(rating, level),
-       col="blue",
-       pch=19
-)
-#plot(rating)
-level <- 9
-logInterpolate(rating, level)
-points(level,
-       logInterpolate(rating, level),
-       col="orange",
-       pch=19
+values <- pretty(range(rating$level), n=20)
+lines(values,
+ logInterpolate(rating,values),
+ col="red"
 )
 
 }
