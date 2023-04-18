@@ -25,10 +25,10 @@ calcArea <- function(xscalc, ght)
   # Interpolate cross section at level of "ght"
   xscalc <- interpSeries(xscalc, ght)
   # Set any values higher than ght to ght
-  if ( NROW(xscalc[xscalc$rl > ght,]$rl) > 0 )   xscalc[xscalc$rl > ght,]$rl <- ght
+  if ( NROW(xscalc[xscalc[,2] > ght,][,2]) > 0 )   xscalc[xscalc[,2] > ght,][,2] <- ght
 
   # calculate offset
-  offset <- max(xscalc$rl)
+  offset <- max(xscalc[,2])
   if (ght > offset)
   {
     extrapolate <- ght - offset
@@ -38,13 +38,15 @@ calcArea <- function(xscalc, ght)
   }
 
   # invert so it measures area under curve
-  xscalc$rl <- xscalc$rl*-1
+  xscalc[,2] <- xscalc[,2]*-1
   #plot(xscalc)
   # offset to positive
-  xscalc$rl <- xscalc$rl+offset+extrapolate
+  xscalc[,2] <- xscalc[,2]+offset+extrapolate
 
   #plot(xscalc)
 
-  return (pracma::trapz(xscalc$chain, xscalc$rl))
+  return (pracma::trapz(xscalc[,1], xscalc[,2]))
 
 }
+
+
