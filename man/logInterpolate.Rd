@@ -2,7 +2,7 @@
 % Please edit documentation in R/logInterpolate.R
 \name{logInterpolate}
 \alias{logInterpolate}
-\title{Lograrithmic interpolation between points}
+\title{Logarithmic interpolation between points}
 \usage{
 logInterpolate(rating, num, logOffset = 0, base = 10)
 }
@@ -20,16 +20,21 @@ i.e. one row less than the first positive value}
 dataframe of height and area
 }
 \description{
-Intpolates a set of points logarithmically
+Interpolates a set of points logarithmic ally
     Either sets its own log offset based on inputs, or as determined
+    When subtracting a logoffset from the reference goes negative,
+    NA will be returned for that range
+    i.e. reference 2,2.5, subtracting logOffset 2.1, results in -0.1, 0.4,
+    anything in the range of 2-2.5 is NA.
 }
 \examples{
 rating <- data.frame(level = c(2,2.5,4,6,10),
   discharge = c(0.1,10,100,1000,4000)
                       )
 
-logInterpolate(rating, 3.5)
-logInterpolate(rating, c(3.5, 5.5, 9.5))
+logInterpolate(rating, 2.4)
+logInterpolate(rating, c(2.4, 5.5, 9.5))
+logInterpolate(rating, c(2.4, 5.5, 9.5), logOffset = 2.1)
 
 plot(rating)
 values <- pretty(range(rating$level), n=20)

@@ -20,7 +20,7 @@
 interpSeries <- function(series, location)
 {
   # to interpolate values (xaxis) at a location (yaxis), in a series of data.
-  series <- series[order(series$chain),]
+  series <- series[order(series[,1]),]
 
   neighbs <- data.frame(rla = c(0,series[,2]),rlb=c(series[,2],0))
   neighbs <- cbind(neighbs, chaina = c(0,series[,1]),chainb=c(series[,1],0))
@@ -43,7 +43,7 @@ interpSeries <- function(series, location)
     interpPoints <- do.call(rbind,interpPoints)
     names(interpPoints) <- names(series)
     interpPoints <- rbind(series, interpPoints)
-    interpPoints <- interpPoints[order(interpPoints$chain),]
+    interpPoints <- interpPoints[order(interpPoints[,1]),]
     return(interpPoints)
 
   }else{
