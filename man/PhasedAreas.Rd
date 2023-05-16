@@ -16,18 +16,18 @@ TableNum (Alphanumeric) the section ID number to be applied for this time}
 CHAIN (Numeric) cross section chainages
 RL (Numeric) cross section Reduced levels
 n (Aphanumeric) a unique cross section ID number for a particuar cross section.
-    n is same as TableNum in RatePer}
+n is same as TableNum in RatePer}
 
 \item{stagedf}{dataframe, with columns for a timestamp (posixct) and a height (Numeric)}
 }
 \value{
 Vector of areas, from a lookup table at each Stage timestamp,
-    therefore will always merge with Stage.
+therefore will always merge with Stage.
 }
 \description{
 Applies a rating table to height data for a time period
-    If the phased box is set to true, the result is based on a time factor between the
-    current rating table and the next rating table.
+If the phased box is set to true, the result is based on a time factor between the
+current rating table and the next rating table.
 }
 \examples{
 library(ggplot2)

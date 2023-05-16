@@ -25,18 +25,19 @@ ceemdanFilter(time, data, output = 0, method = "ceemdan", d1 = 16, d2 = 25)
 }
 \value{
 list or dataframe (depending on "output")
-    either the entire list of all parameters
+either the entire list of all parameters
 }
 \description{
-Applies ceemdan and merges similar period imfs,
-    also calculates periods, amplitudes of each imfs
+\if{html}{\out{<div class="sourceCode">}}\preformatted{Applies ceemdan and merges similar period imfs,
+also calculates periods, amplitudes of each imfs
+}\if{html}{\out{</div>}}
 }
 \examples{
 
 library(ccInterp)
 library(ggplot2)
 library(reshape2)
-library(ggpubr)
+#library(ggpubr)
 
 # make some random data
 randomMinutes <- rnorm(10000, mean = 60, sd = 30) # create 1000 random intervals
@@ -80,7 +81,7 @@ RawAndAddedNoise <- ggplot(df, aes(x=Time, y=data)) +
   geom_line(data = inputdata, aes(x = Time, y = data),  colour="blue")
 
 # output raw (added noise data), with the 16/25 ceemdan, and 360/1500 ceemdan
-ggarrange(rawPlot, emdFilteredPlotShort, emdFilteredPlotLong, nrow=3, ncol=1)
+#ggarrange(rawPlot, emdFilteredPlotShort, emdFilteredPlotLong, nrow=3, ncol=1)
 
 RawAndDenoised <- ggplot(inputdata, aes(x=Time, y=data)) +
   geom_line(colour="grey") +

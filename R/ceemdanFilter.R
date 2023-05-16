@@ -25,7 +25,7 @@
 #' library(ccInterp)
 #' library(ggplot2)
 #' library(reshape2)
-#' library(ggpubr)
+#' #library(ggpubr)
 #'
 #' # make some random data
 #' randomMinutes <- rnorm(10000, mean = 60, sd = 30) # create 1000 random intervals
@@ -69,7 +69,7 @@
 #'   geom_line(data = inputdata, aes(x = Time, y = data),  colour="blue")
 #'
 #' # output raw (added noise data), with the 16/25 ceemdan, and 360/1500 ceemdan
-#' ggarrange(rawPlot, emdFilteredPlotShort, emdFilteredPlotLong, nrow=3, ncol=1)
+#' #ggarrange(rawPlot, emdFilteredPlotShort, emdFilteredPlotLong, nrow=3, ncol=1)
 #'
 #' RawAndDenoised <- ggplot(inputdata, aes(x=Time, y=data)) +
 #'   geom_line(colour="grey") +

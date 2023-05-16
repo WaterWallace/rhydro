@@ -21,19 +21,28 @@ dataframe of height and area
 }
 \description{
 Interpolates a set of points logarithmic ally
-    Either sets its own log offset based on inputs, or as determined
-    When subtracting a logoffset from the reference goes negative,
-    NA will be returned for that range
-    i.e. reference 2,2.5, subtracting logOffset 2.1, results in -0.1, 0.4,
-    anything in the range of 2-2.5 is NA.
+Either sets its own log offset based on inputs, or as determined
+When subtracting a logoffset from the reference goes negative,
+NA will be returned for that range
+i.e. reference 2,2.5, subtracting logOffset 2.1, results in -0.1, 0.4,
+anything in the range of 2-2.5 is NA.
 }
 \examples{
 rating <- data.frame(level = c(2,2.5,4,6,10),
-  discharge = c(0.1,10,100,1000,4000)
-                      )
+  discharge = c(0.1,10,100,1000,4000))
 
 logInterpolate(rating, 2.4)
 logInterpolate(rating, c(2.4, 5.5, 9.5))
+# A reference value that evaluates to zero or less when logOffset
+# is subtracted will return NaN in that range.
+# If numbers should be expected, the rating should be modified
+# to at least be greater than the logOffset.
+logInterpolate(rating, c(2.4, 5.5, 9.5), logOffset = 2.1)
+
+# i.e. logInterpolate can now interpolate between 2.11 and 2.5m.
+rating <- data.frame(level = c(2.11,2.5,4,6,10),
+  discharge = c(0.001,10,100,1000,4000))
+
 logInterpolate(rating, c(2.4, 5.5, 9.5), logOffset = 2.1)
 
 plot(rating)

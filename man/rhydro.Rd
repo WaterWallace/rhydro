@@ -9,8 +9,8 @@ Hydro tools
 }
 \details{
 Such as
-    And
-    Things
+And
+Things
 }
 \author{
 Stephen Wallace \email{stephen.wallace@des.qld.gov.au}
