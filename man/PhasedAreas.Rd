@@ -29,7 +29,23 @@ Applies a rating table to height data for a time period
 If the phased box is set to true, the result is based on a time factor between the
 current rating table and the next rating table.
 }
+\details{
+\if{html}{\out{<div class="sourceCode">}}\preformatted{This is redundant since PhasedLoginterp does the same thing.
+However need an extra function to convert *xsdf* to *points*
+}\if{html}{\out{</div>}}
+}
 \examples{
+
+
+#'
+#mrdxs <- getXSDB(client, "1110056", bucket = "tsdata3" )
+#mrdht <- getTSDB(client, "1110056", bucket= "tsdata3" )
+data(mrd)
+
+areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht[[1]])
+plot(mrdht[[1]]$time, areas)
+plot(mrdht[[1]]$value_Level, areas)
+
 library(ggplot2)
 # Set cross sections
 xs <- data.frame(CHAIN = c(1,2,3,4,5,6,7),
@@ -56,37 +72,40 @@ Periods <- data.frame(
 # Create a constant stage over time
 Stage <- data.frame(
     timestamp = seq(as.POSIXct("2020-01-01 00:00"), as.POSIXct("2024-01-01 00:00"),
-        by = 60*60*24), # daily timestamps
+        by = 60*60*24), #' daily timestamps
     height = 7
   )
 
 # Apply phased rating tables to stage
-Stage$Area <- PhasedAreas(Periods, XSDF, Stage)
-# Heights covering entire rating periods
-plot(Stage$timestamp, Stage$Area)
+Stage <- cbind(Stage, PhasedAreas(Periods, XSDF, Stage))
+#' Heights covering entire rating periods
+plot(Stage$timestamp, Stage$Value)
+
 
 # Subsection Stage
 Stage <- data.frame(
     timestamp = seq(as.POSIXct("2020-06-01 00:00"), as.POSIXct("2024-01-01 00:00"),
-        by = 60*60*24), # daily timestamps
+        by = 60*60*24), #' daily timestamps
     height = 7
   )
 
 # Apply phased rating tables to stage
-Stage$Area <- PhasedAreas(Periods, XSDF, Stage)
+Stage <- cbind(Stage, PhasedAreas(Periods, XSDF, Stage))
+
 # Plots starting after the first rating period has started
-plot(Stage$timestamp, Stage$Area)
+plot(Stage$timestamp, Stage$Value)
+
 # Subsection Stage
 Stage <- data.frame(
     timestamp = seq(as.POSIXct("2019-01-01 00:00"), as.POSIXct("2024-01-01 00:00"),
-        by = 60*60*24), # daily timestamps
+        by = 60*60*24), #' daily timestamps
     height = 7
   )
 
 # Apply phased rating tables to stage
-Stage$Area <- PhasedAreas(Periods, XSDF, Stage)
+Stage <- cbind(Stage, PhasedAreas(Periods, XSDF, Stage))
 # Heights starting before rating periods - No values before period starts.
-plot(Stage$timestamp, Stage$Area)
+plot(Stage$timestamp, Stage$Value)
 
 # Set rating periods to always phased change
 Periods <- data.frame(
@@ -97,8 +116,11 @@ Periods <- data.frame(
     )
 
 # Apply phased rating tables to stage
-Stage$Area <- PhasedAreas(Periods, XSDF, Stage)
+Stage <- cbind(Stage, PhasedAreas(Periods, XSDF, Stage))
 # Heights covering entire rating periods
-plot(Stage$timestamp, Stage$Area)
+plot(Stage$timestamp, Stage$Value)
+
+
+
 
 }

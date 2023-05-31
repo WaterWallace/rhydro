@@ -4,7 +4,7 @@
 \alias{PhasedLoginterp}
 \title{Calculate cross sectional area for a a range of periods}
 \usage{
-PhasedLoginterp(RatePer, offsets, points, stagedf)
+PhasedLoginterp(RatePer, points, stagedf, offsets = NULL)
 }
 \arguments{
 \item{RatePer}{\emph{dataframe}, with columns \emph{PeriodStart}, \emph{End}, \emph{Phased}, \emph{TableNum}
@@ -12,12 +12,6 @@ PhasedLoginterp(RatePer, offsets, points, stagedf)
 \item{\emph{PeriodStart}}{ Posixct, start time of the rating period" }
 \item{\emph{TableNum}}{ String, the section ID number to be applied for this time }
 \item{\emph{Phased}}{ Boolean, TRUE of FALSE }
-}}
-
-\item{offsets}{dataframe, with columns "PeriodStart", "TableNum", "logOffset"
-\itemize{
-\item{\emph{TableNum}}{ String, the section ID of the cross section}
-\item{\emph{logOffset}}{ Numeric, logOffset of this rating table, If zero, offset will be calculated }
 }}
 
 \item{points}{list, of dataframes, including \emph{from}, \emph{to}, \emph{ratingID}, \emph{QC}
@@ -32,6 +26,12 @@ PhasedLoginterp(RatePer, offsets, points, stagedf)
 \itemize{
 \item{\emph{timestamp}}{ posixct, Reference value, i.e. height }
 \item{\emph{height}}{ Numeric, Lookup value, i.e. discharge }
+}}
+
+\item{offsets}{\emph{(optional)} dataframe, with columns "PeriodStart", "TableNum", "logOffset"
+\itemize{
+\item{\emph{TableNum}}{ String, the section ID of the cross section}
+\item{\emph{logOffset}}{ Numeric, logOffset of this rating table, If zero, offset will be calculated }
 }}
 }
 \value{
@@ -51,8 +51,9 @@ from an influx database retrieval script.
 
 #prepared exaple
 data(tinana)
-out <- PhasedLoginterp(rating$Periods, rating$Offsets, rating$XS, level)
-plot(level$level.ts, out+0.001, log="y")
+out <- PhasedLoginterp(rating$Periods, rating$XS, level, rating$Offsets)
+head(out)
+plot(level$level.ts, out$Value+0.001, log="y")
 
 #Randomly generated example
 library(dplyr)
@@ -99,13 +100,13 @@ TableNum = unique(periods$TableNum),
   })))
 
 #calculate discharge with PhasedLoginterp()
-ts$Discharge <- PhasedLoginterp(periods, offsets, ratings, ts)
+ts <- cbind(ts, PhasedLoginterp(periods, ratings, ts, offsets))
 
-par(mar = c(5, 4, 4, 4) + 0.3)  #'  Leave space for z axis
+par(mar = c(5, 4, 4, 4) + 0.3)  #  Leave space for z axis
 plot(Signal ~ Time, data = ts, type="l", col="darkgreen")
 par(new = TRUE)
-plot(ts$Time, ts$Discharge, type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "", col="maroon")
-axis(side=4, at = pretty(range(ts$Discharge)))
-mtext("Discharge", side=4, line=3)
+plot(ts$Time, ts$Value, type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "", col="maroon")
+axis(side=4, at = pretty(range(ts$Value)))
+mtext("Value", side=4, line=3)
 
 }

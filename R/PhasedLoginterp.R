@@ -14,11 +14,6 @@
 #'     \item{*TableNum*}{ String, the section ID number to be applied for this time }
 #'     \item{*Phased*}{ Boolean, TRUE of FALSE }
 #'     }
-#' @param offsets dataframe, with columns "PeriodStart", "TableNum", "logOffset"
-#' \itemize{
-#'     \item{*TableNum*}{ String, the section ID of the cross section}
-#'     \item{*logOffset*}{ Numeric, logOffset of this rating table, If zero, offset will be calculated }
-#'     }
 #' @param points list, of dataframes, including *from*, *to*, *ratingID*, *QC*
 #' \itemize{
 #'     \item{*from*}{ Numeric, Reference value, i.e. height }
@@ -31,6 +26,11 @@
 #'     \item{*timestamp*}{ posixct, Reference value, i.e. height }
 #'     \item{*height*}{ Numeric, Lookup value, i.e. discharge }
 #'     }
+#' @param offsets *(optional)* dataframe, with columns "PeriodStart", "TableNum", "logOffset"
+#' \itemize{
+#'     \item{*TableNum*}{ String, the section ID of the cross section}
+#'     \item{*logOffset*}{ Numeric, logOffset of this rating table, If zero, offset will be calculated }
+#'     }
 #'
 #' @return Vector of log interpolated data as read from the rating table,
 #'     same timestep as the input height.
@@ -39,8 +39,9 @@
 #'
 #' #prepared exaple
 #' data(tinana)
-#' out <- PhasedLoginterp(rating$Periods, rating$Offsets, rating$XS, level)
-#' plot(level$level.ts, out+0.001, log="y")
+#' out <- PhasedLoginterp(rating$Periods, rating$XS, level, rating$Offsets)
+#' head(out)
+#' plot(level$level.ts, out$Value+0.001, log="y")
 #'
 #' #Randomly generated example
 #' library(dplyr)
@@ -87,22 +88,42 @@
 #'   })))
 #'
 #' #calculate discharge with PhasedLoginterp()
-#' ts$Discharge <- PhasedLoginterp(periods, offsets, ratings, ts)
+#' ts <- cbind(ts, PhasedLoginterp(periods, ratings, ts, offsets))
 #'
-#' par(mar = c(5, 4, 4, 4) + 0.3)  #'  Leave space for z axis
+#' par(mar = c(5, 4, 4, 4) + 0.3)  #  Leave space for z axis
 #' plot(Signal ~ Time, data = ts, type="l", col="darkgreen")
 #' par(new = TRUE)
-#' plot(ts$Time, ts$Discharge, type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "", col="maroon")
-#' axis(side=4, at = pretty(range(ts$Discharge)))
-#' mtext("Discharge", side=4, line=3)
+#' plot(ts$Time, ts$Value, type = "l", axes = FALSE, bty = "n", xlab = "", ylab = "", col="maroon")
+#' axis(side=4, at = pretty(range(ts$Value)))
+#' mtext("Value", side=4, line=3)
 #'
 #' @export
 #'
 
 # Have to check that it uses only the latest offsets for each TableNum
-PhasedLoginterp <- function(RatePer, offsets, points, stagedf )
+PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
 {
+
+  #PhasedLoginterp(rating$Periods, rating$XS, level, rating$Offsets)
+
+  #RatePer <- periods
+  #offsets
+  #points <- ratings
+  #stagedf <- ts
+
+  #RatePer <- rating$Periods
+  #points <- rating$XS
+  #stagedf <- level
+  #offsets <- rating$Offsets
+
+  #RatePer <- mrdxs$Periods
+  #points <- mrdlookups
+  #stagedf <- data.frame(timestamp = mrdht[[1]]$time,
+  #                      height = mrdht[[1]]$value_Level )
+
+
   points <- do.call(rbind, points)
+  #points <- points %>% select(!QC)
 
   ratingsTimesList <- function(starttimes, timestamps) # creates a list of times of models
   {
@@ -138,9 +159,12 @@ PhasedLoginterp <- function(RatePer, offsets, points, stagedf )
   periods <- ratingsTimesList(RatePer, stagedf[,1])
   convertedList <- list()
   lenPeriods <- nrow(periods)
+
+  QCPresent <- 'QC' %in% names(points)
+
   for(periodNum in 1:lenPeriods)
   {
-    # periodNum <- 1
+    # periodNum <- 2
     thisPeriod <- periods[periodNum,]
     message(paste("from: ", thisPeriod$PeriodStart, " to: ", thisPeriod$End, thisPeriod$Phased, thisPeriod$TableNum) )
 
@@ -154,23 +178,44 @@ PhasedLoginterp <- function(RatePer, offsets, points, stagedf )
 
     if(nrow(stagesubset) > 0)
     {
+
+      #thisTable <- points[[paste(thisPeriod$TableNum)]]
       thisTable <- points[points$ratingID == thisPeriod$TableNum,] # start table
-      thisLog <- offsets[offsets$TableNum == thisPeriod$TableNum,]$logOffset
+
+      if ( !is.null(offsets) )
+      {
+        thisLog <- offsets[offsets$TableNum == thisPeriod$TableNum,]$logOffset
+      }else
+      {
+        thisLog <- 0
+      }
 
       lookup1 <- data.frame(thisTable$from, thisTable$to)
+      if (QCPresent) lookup1$QC <- thisTable$QC
+
       phasedareas <- logInterpolate(lookup1, stagesubset[,2], logOffset = thisLog)
 
       if(periodNum < lenPeriods & thisPeriod$Phased == 1)
       {
         nextPeriod <- periods[(periodNum+1),]
 
+        #nextTable <- points[[paste(nextPeriod$TableNum)]]
         nextTable <- points[points$ratingID == nextPeriod$TableNum,] # start table
-        nextLog <- offsets[offsets$TableNum == nextPeriod$TableNum,]$logOffset
 
+        if ( !is.null(offsets) )
+        {
+          nextLog <- offsets[offsets$TableNum == nextPeriod$TableNum,]$logOffset
+        }else
+        {
+          nextLog <- 0
+        }
         #nextTable <- xsdf[xsdf$n == nextPeriod$TableNum,] # end table
 
         #lookup2 <- areaLookup(dplyr::select(nextTable, c("CHAIN","RL"))) # get lookup table of next xs
+        #lookup2 <- data.frame(nextTable$from, nextTable$to, nextTable$QC)
         lookup2 <- data.frame(nextTable$from, nextTable$to)
+        if (QCPresent) lookup2$QC <- nextTable$QC
+
         phasedareas2 <- logInterpolate(lookup2, stagesubset[,2], logOffset = nextLog) # calculate areas
 
         #######
@@ -178,10 +223,15 @@ PhasedLoginterp <- function(RatePer, offsets, points, stagedf )
         sinceBegin <- difftime( stagesubset[,1], thisPeriod$PeriodStart, units="mins" )
         ratio <- as.numeric(sinceBegin/as.numeric(minutesBetweenRate))
 
-        phasedareas <- phasedareas*(1-ratio)+phasedareas2*ratio
+        phasedareas$value <- phasedareas$value*(1-ratio)+phasedareas2$value*ratio
+        if (QCPresent) phasedareas$qc <- pmax(phasedareas$qc, phasedareas2$qc)
 
       }
-      convertedList[[periodNum]] <- data.frame(Time = stagesubset[,1], Area = phasedareas)
+      convertedList[[periodNum]] <- data.frame(Time = stagesubset[,1],
+                                               Value = phasedareas$value)
+
+
+      if (QCPresent)  convertedList[[periodNum]]$QC <- phasedareas$qc
 
     }else{
       # skip empty data
@@ -191,14 +241,19 @@ PhasedLoginterp <- function(RatePer, offsets, points, stagedf )
 
   convertedList <- do.call(rbind, convertedList)
 
-  if(convertedList[1,1] > stagedf[1,1]) message("warning: areas trimmed to match XS dates")
-  f.out <- approxfun(convertedList)
-  return(f.out(stagedf[,1]))
+  if(convertedList[1,1] > stagedf[1,1]) message("warning: areas trimmed to match lookup dates")
+
+  head(convertedList)
+  f.out <- approxfun(convertedList$Time, convertedList$Value)
+  if(QCPresent){
+    f.qc <- approxfun(convertedList$Time, convertedList$QC)
+    return(data.frame(Value = f.out(stagedf[,1]),
+                      QC = f.qc(stagedf[,1])))
+  }else{
+    df <- data.frame(Value = f.out(stagedf[,1]))
+    return(df)
+  }
+
 
 }
-
-
-
-
-
 

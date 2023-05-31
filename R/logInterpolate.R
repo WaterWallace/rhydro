@@ -8,13 +8,14 @@
 #'     anything in the range of 2-2.5 is NA.
 #'
 #' @param rating dataframe, with columns for reference and a lookup value,
+#'      qc for column 3 optional.
 #'      i.e. a height reference, and a lookup area.
 #' @param num Numeric or vector for desired values
 #' @param logOffset Numeric to specify the log offset used.
 #'     Leave as zero to set as the maximum value that the result is zero,
 #'     i.e. one row less than the first positive value
 #'
-#' @return dataframe of height and area
+#' @return dataframe of either *Value*, or *Value* and *QC*
 #'
 #' @examples
 #' rating <- data.frame(level = c(2,2.5,4,6,10),
@@ -37,13 +38,26 @@
 #' plot(rating)
 #' values <- pretty(range(rating$level), n=20)
 #' lines(values,
-#'  logInterpolate(rating,values),
+#'  logInterpolate(rating,values)$value,
 #'  col="red"
 #' )
+#'
+#' # interpolate quality code
+#' rating$qc <- c(10,10,20,20,60)
+#' logInterpolate(rating,c(1.9, 6.1, 9.5))
 #'
 #' @export
 logInterpolate <- function (rating, num, logOffset = 0, base = 10)
 {
+
+  maxfun <- function(t, y, x, option = "max") {
+    f.qual0 <- approxfun(t, y, method = "constant", ties = option,
+                         f = 0)
+    f.qual1 <- approxfun(t, y, method = "constant", ties = option,
+                         f = 1)
+
+    return(pmax(f.qual0(x), f.qual1(x)))
+  }
 
   ctf <- min(rating[rating[2] > 0,1]) # return the reference line with the minimum >0 lookup value.
   if (logOffset == 0) {
@@ -57,6 +71,7 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
     }
   }
 
+
   num <- num - logOffset
 
   rating[,1] <- rating[,1] - logOffset # subtract log offset from ref
@@ -69,6 +84,16 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
   interpvalue <- data.frame(ht = (num+logOffset), q = interpvalue)
   interpvalue$q[interpvalue$ht < ctf] <- 0
 
-  return(interpvalue$q)
+
+  if (length(rating) == 3)
+  {
+    qc <- maxfun(rating[,1], rating[,3], num)
+    return(data.frame(value = interpvalue$q, qc = qc))
+  }else{
+    return(data.frame(value = interpvalue$q) )
+  }
 }
+
+
+
 

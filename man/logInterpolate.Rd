@@ -8,6 +8,7 @@ logInterpolate(rating, num, logOffset = 0, base = 10)
 }
 \arguments{
 \item{rating}{dataframe, with columns for reference and a lookup value,
+qc for column 3 optional.
 i.e. a height reference, and a lookup area.}
 
 \item{num}{Numeric or vector for desired values}
@@ -17,7 +18,7 @@ Leave as zero to set as the maximum value that the result is zero,
 i.e. one row less than the first positive value}
 }
 \value{
-dataframe of height and area
+dataframe of either \emph{Value}, or \emph{Value} and \emph{QC}
 }
 \description{
 Interpolates a set of points logarithmic ally
@@ -48,8 +49,12 @@ logInterpolate(rating, c(2.4, 5.5, 9.5), logOffset = 2.1)
 plot(rating)
 values <- pretty(range(rating$level), n=20)
 lines(values,
- logInterpolate(rating,values),
+ logInterpolate(rating,values)$value,
  col="red"
 )
+
+# interpolate quality code
+rating$qc <- c(10,10,20,20,60)
+logInterpolate(rating,c(1.9, 6.1, 9.5))
 
 }
