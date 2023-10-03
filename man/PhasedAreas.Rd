@@ -18,10 +18,12 @@ RL (Numeric) cross section Reduced levels
 n (Aphanumeric) a unique cross section ID number for a particuar cross section.
 n is same as TableNum in RatePer}
 
-\item{stagedf}{dataframe, with columns for a timestamp (posixct) and a height (Numeric)}
+\item{stagedf}{dataframe, with columns for a timestamp (posixct)
+and a height (Numeric)}
 }
 \value{
-Vector of areas, from a lookup table at each Stage timestamp,
+dataframe of areas, and optional quality code,
+from a lookup table at each Stage timestamp,
 therefore will always merge with Stage.
 }
 \description{
@@ -42,9 +44,10 @@ However need an extra function to convert *xsdf* to *points*
 #mrdht <- getTSDB(client, "1110056", bucket= "tsdata3" )
 data(mrd)
 
-areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht[[1]])
-plot(mrdht[[1]]$time, areas)
-plot(mrdht[[1]]$value_Level, areas)
+mrdht <- dplyr::select(mrdht[[1]], c(time, value_Level))
+areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht)
+plot(mrdht$time, areas$Value)
+plot(mrdht$value_Level, areas$Value)
 
 library(ggplot2)
 # Set cross sections

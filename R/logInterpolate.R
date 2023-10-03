@@ -47,6 +47,12 @@
 #' logInterpolate(rating,c(1.9, 6.1, 9.5))
 #'
 #' @export
+#'
+#'
+#rating <- lookup1
+#num <- stagesubset[,2]
+#logOffset <- thisLog
+
 logInterpolate <- function (rating, num, logOffset = 0, base = 10)
 {
 

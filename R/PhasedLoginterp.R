@@ -100,6 +100,13 @@
 #' @export
 #'
 
+#RatePer = RatePer
+#points = mrdlookups
+#stagedf = data.frame(timestamp = stagedf[,1],
+#                     height = stagedf[,2])
+
+
+
 # Have to check that it uses only the latest offsets for each TableNum
 PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
 {

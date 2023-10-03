@@ -31,9 +31,10 @@
 #' #mrdht <- getTSDB(client, "1110056", bucket= "tsdata3" )
 #' data(mrd)
 #'
-#' areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht[[1]])
-#' plot(mrdht[[1]]$time, areas$Value)
-#' plot(mrdht[[1]]$value_Level, areas$Value)
+#' mrdht <- dplyr::select(mrdht[[1]], c(time, value_Level))
+#' areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht)
+#' plot(mrdht$time, areas$Value)
+#' plot(mrdht$value_Level, areas$Value)
 #'
 #' library(ggplot2)
 #' # Set cross sections
@@ -114,6 +115,12 @@
 #'
 #' @export
 #'
+#'
+#areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht[[1]])
+#RatePer <- mrdxs$Periods
+#xsdf <- mrdxs$XS
+#stagedf <- mrdht[[1]]
+
 PhasedAreas <- function(RatePer, xsdf, stagedf )
 {
 

@@ -1,7 +1,7 @@
 Package: rhydro
 Type: Package
 Title: Tools for hydrographic data processing in R
-Version: 0.2.2
+Version: 0.2.3
 Author: Stephen Wallace
 Maintainer: Stephen Wallace <stephen.wallace@des.qld.gov.au>
 Description: Hydro tools
