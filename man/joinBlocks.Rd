@@ -4,7 +4,7 @@
 \alias{joinBlocks}
 \title{Join two blocks together depending on specific dates}
 \usage{
-joinBlocks(original, infill, minGap = 120, typekey = NULL)
+joinBlocks(original, infill, minGap = 120, minBlock = 120, typekey = NULL)
 }
 \arguments{
 \item{original}{dataframe, timestamp, and one or more columns of data}

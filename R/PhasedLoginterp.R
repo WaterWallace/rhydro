@@ -202,6 +202,8 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
 
       phasedareas <- logInterpolate(lookup1, stagesubset[,2], logOffset = thisLog)
 
+
+
       if(periodNum < lenPeriods & thisPeriod$Phased == 1)
       {
         nextPeriod <- periods[(periodNum+1),]
@@ -251,11 +253,13 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
   if(convertedList[1,1] > stagedf[1,1]) message("warning: areas trimmed to match lookup dates")
 
   head(convertedList)
-  f.out <- approxfun(convertedList$Time, convertedList$Value)
+  f.out <- approxfun(convertedList$Time, convertedList$Value, na.rm = FALSE)
   if(QCPresent){
     f.qc <- approxfun(convertedList$Time, convertedList$QC)
-    return(data.frame(Value = f.out(stagedf[,1]),
-                      QC = f.qc(stagedf[,1])))
+    df <- data.frame(Value = f.out(stagedf[,1]),
+                     QC = f.qc(stagedf[,1]))
+
+    return(df)
   }else{
     df <- data.frame(Value = f.out(stagedf[,1]))
     return(df)

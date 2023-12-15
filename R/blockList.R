@@ -54,5 +54,4 @@ blockList <- function(gaps, ts, minblock = 360)
   return (blocks)
 }
 
-?ccInterp::StevesCoolRandomTS()
 

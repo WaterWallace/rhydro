@@ -58,24 +58,32 @@
 #' @export
 #'
 #'
-joinBlocks <- function(original, infill, minGap = 120, typekey = NULL)
+joinBlocks <- function(original, infill, minGap = 120, minBlock = 120, typekey = NULL)
 {
   stopifnot("must be equal columns" = length(original) == length(infill) )
   if (!is.null(typekey)){
     stopifnot("typekey must be length of inputs" = length(typekey) == length(infill) )
   }
-  gaplist <- original %>% GapList(minGap = minGap)
-  blocklist <- blockList(gaplist, original)
 
-  original <- splitBlocks(blocklist, original, include = 1, typekey = typekey)
-  infill <- splitBlocks(blocklist, infill, include = 0, typekey = typekey)
+  if(infill[1,1] < original[1,1]) {
+    toprowinfill <- infill[1,]
+    names(toprowinfill) <- names(original)
+    original <- rbind(toprowinfill, original)
+  }
+  if(infill[nrow(infill), 1] < original[nrow(infill), 1]) {
+    bottomrowinfill <- infill[nrow(infill),]
+    names(bottomrowinfill) <- names(original)
+    original <- rbind(bottomrowinfill, original)
+  }
+
+  gaplist <- original %>% GapList(minGap = minGap)
+  #blocklist <- rhydro::blockList(gaplist, original, minblock = minBlock)
+
+  original <- splitBlocks(gaplist, original, include = 0, typekey = typekey)
+  infill <- splitBlocks(gaplist, infill, include = 1, typekey = typekey)
 
   names(infill) <-  names(original)
   original <- rbind(infill, original)
   original <- original[order(original[,1]),]
   return(original)
 }
-
-
-
-
