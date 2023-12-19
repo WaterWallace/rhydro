@@ -53,6 +53,7 @@
 #num <- stagesubset[,2]
 #logOffset <- thisLog
 
+
 logInterpolate <- function (rating, num, logOffset = 0, base = 10)
 {
 
@@ -65,10 +66,12 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
     return(pmax(f.qual0(x), f.qual1(x)))
   }
 
+
   ctf <- min(rating[rating[2] > 0,1]) # return the reference line with the minimum >0 lookup value.
   if (logOffset == 0) {
 
-    zeroQ <- rating[rating[2] <= 0,]
+    zeroQ <- rating %>% filter(.[[2]] <= 0)
+
     if (nrow(zeroQ) > 0)
     {
       logOffset <- max(zeroQ[1]) # max height, of outputs less than or equal to zero

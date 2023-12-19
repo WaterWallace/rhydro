@@ -111,25 +111,8 @@
 PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
 {
 
-  #PhasedLoginterp(rating$Periods, rating$XS, level, rating$Offsets)
-
-  #RatePer <- periods
-  #offsets
-  #points <- ratings
-  #stagedf <- ts
-
-  #RatePer <- rating$Periods
-  #points <- rating$XS
-  #stagedf <- level
-  #offsets <- rating$Offsets
-
-  #RatePer <- mrdxs$Periods
-  #points <- mrdlookups
-  #stagedf <- data.frame(timestamp = mrdht[[1]]$time,
-  #                      height = mrdht[[1]]$value_Level )
-
-
   points <- do.call(rbind, points)
+  points <- as.data.frame(points)
   #points <- points %>% select(!QC)
 
   ratingsTimesList <- function(starttimes, timestamps) # creates a list of times of models
@@ -201,7 +184,6 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
       if (QCPresent) lookup1$QC <- thisTable$QC
 
       phasedareas <- logInterpolate(lookup1, stagesubset[,2], logOffset = thisLog)
-
 
 
       if(periodNum < lenPeriods & thisPeriod$Phased == 1)
