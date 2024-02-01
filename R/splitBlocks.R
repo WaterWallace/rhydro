@@ -76,7 +76,7 @@ splitBlocks <- function(blocklist, newdata, typekey = NULL, include = 1)
   dupes <- tags$date[duplicated(tags$date)]  # duplicates
   # duplicates are just single points separated by gaps
   tags <- tags[!tags$date %in% dupes,]  # remove duplicates
-  f.tags <- approxfun(tags, method = "constant") # lookup function
+  f.tags <- approxfun(tags, method = "constant", rule = 1) # lookup function
   # boundaries to interpolate and include ( or not )
   bounds <- c( blocklist[,1], blocklist[,2] )
 
@@ -106,6 +106,8 @@ splitBlocks <- function(blocklist, newdata, typekey = NULL, include = 1)
   boundsList[,1] <- as.POSIXct(boundsList[,1], origin = "1970-01-01")
   names(boundsList) <- names(newdata)
   newdata$tags <- f.tags(newdata[,1]) # tag is whether to include or not
+  newdata$tags[is.na(newdata$tags)] <- abs(include - 1) # set to the opposite of include
+
   boundsList$tags <- include # include boundaries ( or not )
   newdata <- rbind( boundsList, newdata )
 
@@ -117,8 +119,9 @@ splitBlocks <- function(blocklist, newdata, typekey = NULL, include = 1)
   newdata <- distinct(newdata,
                       .data[[names(newdata)[1]]], # column 1 name
                       .keep_all = TRUE)
+
   # omit NA from result
-  newdata$tags[is.na(newdata$tags)] <- 0
+  #newdata$tags[is.na(newdata$tags)] <- 0
 
   # include only those with the correct tag
   count <- 0
@@ -135,8 +138,6 @@ splitBlocks <- function(blocklist, newdata, typekey = NULL, include = 1)
   return(splitblocks[,-length(splitblocks)])
   #return(splitblocks)
 }
-
-
 
 
 
