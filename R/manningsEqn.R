@@ -24,7 +24,5 @@ manningsEqn <- function(xssummary, slope=0.0015, n=0.05)
   r23 <- xssummary[,4]^(2/3)
   s05 <- slope^0.5
 
-  q<-(a*r23*s05)/n
-  return(cbind(xssummary, q))
-
+  return(xssummary %>% mutate(q = (a*r23*s05)/n))
 }

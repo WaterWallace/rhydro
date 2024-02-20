@@ -22,6 +22,7 @@
 #'
 areaLookup <- function(xs, interval = 0.1, window=c(0,0))
 {
+
   names(xs) <- c("chain", "rl")
 
   if(window[1] == 0 & window[2] == 0 )
@@ -29,13 +30,29 @@ areaLookup <- function(xs, interval = 0.1, window=c(0,0))
     window<- c(min(xs$rl), max(xs$rl)*1.5 )
   }
 
+  if(interval == 0)
+  {
+    rlseq <-  unique( c(window[1], window[2], xs$rl ) )
+  }else{
+    rlseq <- unique( c( window[1],
+                        window[2],
+                        seq(window[1],window[2],by=interval),
+                        xs$rl)
+    )
+
+    rlseq <- rlseq [ rlseq %>% between(window[1], window[2]) ] # limit by range window
+  }
+
+
+
   xsLookup <- list()
   count <- 0
-  for( i in seq(window[1],window[2],by=interval) )
+  for( i in rlseq )
   {
     count <- count+1
     xsLookup[[count]] <- data.frame(height = i, area = calcArea(xs, i))
   }
-  return(do.call(rbind,xsLookup))
+  xsLookup <- do.call(rbind,xsLookup)
+  xsLookup <- xsLookup[order(xsLookup$height),]
 
 }
