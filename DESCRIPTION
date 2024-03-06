@@ -13,5 +13,5 @@ Encoding: UTF-8
 LazyData: true
 Imports: ccInterp, ggplot2, pracma, viridisLite, viridis, influxdbclient, Rlibeemd, reshape2, signal, zoo, MASS, oce, dplyr, EMD, data.table, repmod, stats
 Suggests: 
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.1
 Roxygen: list(markdown = TRUE)

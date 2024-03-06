@@ -1,3 +1,6 @@
+
+if(1 == 0)
+{
 library(httr)
 library(dplyr)
 # Daintree village
@@ -95,4 +98,5 @@ scrape2influx <- function(url1, gsnumber)
                fieldCols = c("value", "QC"),                      # data
                timeCol = "time")                            # timestamp
 
+}
 }

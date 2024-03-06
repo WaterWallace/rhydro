@@ -2,6 +2,7 @@
 % Please edit documentation in R/rhydro.R
 \docType{package}
 \name{rhydro}
+\alias{rhydro-package}
 \alias{rhydro}
 \title{Tools for hydrographic data processing in R}
 \description{
