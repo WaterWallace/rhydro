@@ -110,8 +110,19 @@ ceemdanFilter <- function(time, data, output=0, method="ceemdan", d1 = 16, d2 = 
     for (imfNum in 1:ncol(imf))
     {
       imfSpec <- spectrum(imf[,imfNum], plot=FALSE)
-      lowpass <- butter(2, min(100/length(imfSpec$spec), 1) , type="low") #low pass filter
-      filteredSpec <- filtfilt(lowpass, imfSpec$spec) #24 hour low pass filter on hourly data
+
+      ## superceded ##
+      #lowpass <- butter(2, min(100/length(imfSpec$spec), 1) , type="low") #low pass filter
+      #filteredSpec <- filtfilt(lowpass, imfSpec$spec) #24 hour low pass filter on hourly data
+
+      # running mean filter
+      # Filtered to the lesser of 100, or a tenth of the total lenght of hte spectrum
+      # i.e. if it's 50 long, filterlength will be 5
+      filterlength <- 100
+      filterlength <- ( min(length(imfSpec$spec), filterlength * 10) / 10 ) %>% ceiling
+      filteredSpec <- stats::filter(imfSpec$spec, rep(1/filterlength, filterlength ), method="convolution", sides=2)
+      filteredSpec[is.na(filteredSpec)] <- 0
+
       f <- imfSpec$freq[which.max(filteredSpec)] #frequency
       periods[imfNum] <- 1/f
       #ampl[imfNum] <- max(filteredSpec)

@@ -1,5 +1,5 @@
 library(httr)
-
+library(dplyr)
 # Daintree village
 url1 <- "http://www.bom.gov.au/fwo/IDQ65394/IDQ65394.531110.tbl.shtml"
 #Barratt Creek Daintree
@@ -12,6 +12,7 @@ url1 <- "http://www.bom.gov.au/fwo/IDQ65393/IDQ65393.533143.tbl.shtml"
 #strsplit(rawToChar( res$content ), "\n")
 scrapeBOM <- function(url1)
 {
+
   UA <- "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0"
   res   <- GET(url1, add_headers(`Connection` = "keep-alive", `User-Agent` = UA))
 
@@ -59,18 +60,39 @@ scrapeBOM <- function(url1)
 }
 
 data
-
-
 data <- scrapeBOM("http://www.bom.gov.au/fwo/IDQ65394/IDQ65394.531110.tbl.shtml")
 data <- scrapeBOM("http://www.bom.gov.au/fwo/IDQ65393/IDQ65393.533143.tbl.shtml")
+tail(data)
+data$V1 <- as.POSIXct(data$V1, tz = "Australia/Sydney")
 
 
-ccInterp::cciDespike(data, doPlot = TRUE)
-
-plot(data)
 plot()
 
 data$diff <- c(0,diff(data$V1))
 data
 plot(data$V1)
 diff(data$V1)
+
+
+
+scrape2influx <- function(url1, gsnumber)
+{
+  bomdata <- scrapeBOM(url1)
+
+  data <- data.frame(time = bomdata$V1,
+                     value = bomdata$V2,
+                     QC = as.integer(140),
+                     GSNumber = gsnumber,
+                     name = "TSDB",
+                     var = "Level")
+
+  tail(data)
+  print("influx import")
+  ## Send to influx
+  client$write(data,bucket = "tsdata3", precision = "s",
+               measurementCol = "GSNumber",                 # key
+               tagCols = c("name","var"),         # identifiers
+               fieldCols = c("value", "QC"),                      # data
+               timeCol = "time")                            # timestamp
+
+}

@@ -18,7 +18,6 @@
 #' calcArea(xs, 20)
 #'
 #' @export
-#'
 calcArea <- function(xscalc, ght)
 {
   if (ght <= min(xscalc[,2])) return (0)
@@ -48,5 +47,7 @@ calcArea <- function(xscalc, ght)
   return (pracma::trapz(xscalc[,1], xscalc[,2]))
 
 }
+?calcArea
 
+plot(xs)
 
