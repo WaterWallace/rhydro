@@ -47,7 +47,4 @@ calcArea <- function(xscalc, ght)
   return (pracma::trapz(xscalc[,1], xscalc[,2]))
 
 }
-?calcArea
-
-plot(xs)
 
