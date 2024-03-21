@@ -69,6 +69,7 @@ tail(data)
 data$V1 <- as.POSIXct(data$V1, tz = "Australia/Sydney")
 
 
+
 plot()
 
 data$diff <- c(0,diff(data$V1))
@@ -78,7 +79,7 @@ diff(data$V1)
 
 
 
-scrape2influx <- function(url1, gsnumber)
+scrape2influx <- function(url1, gsnumber, token = token)
 {
   bomdata <- scrapeBOM(url1)
 
@@ -88,6 +89,13 @@ scrape2influx <- function(url1, gsnumber)
                      GSNumber = gsnumber,
                      name = "TSDB",
                      var = "Level")
+
+  #token <- "" # don't save the token in this file
+  client <- InfluxDBClient$new(url = "https://eastus-1.azure.cloud2.influxdata.com",
+                               token = token,
+                               org = "stephen.wallace@des.qld.gov.au",
+                               retryOptions = TRUE)
+
 
   tail(data)
   print("influx import")
@@ -99,4 +107,12 @@ scrape2influx <- function(url1, gsnumber)
                timeCol = "time")                            # timestamp
 
 }
+
+
+scrape2influx("http://www.bom.gov.au/fwo/IDQ65394/IDQ65394.531132.plt.shtml", "B531132", token ) #barrat
+scrape2influx("http://www.bom.gov.au/fwo/IDQ65394/IDQ65394.531110.tbl.shtml", "B531110", token ) #daintree village
+
+"http://www.bom.gov.au/fwo/IDQ65394/IDQ65394.531132.plt.shtml"
+
+
 }

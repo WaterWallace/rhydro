@@ -58,6 +58,7 @@
 #' @export
 #'
 #'
+#'
 joinBlocks <- function(original, infill, minGap = 120, minBlock = 120, typekey = NULL)
 {
   stopifnot("must be equal columns" = length(original) == length(infill) )
@@ -70,7 +71,7 @@ joinBlocks <- function(original, infill, minGap = 120, minBlock = 120, typekey =
     names(toprowinfill) <- names(original)
     original <- rbind(toprowinfill, original)
   }
-  if(infill[nrow(infill), 1] < original[nrow(infill), 1]) {
+  if(infill[nrow(infill), 1] < original[nrow(original), 1]) {
     bottomrowinfill <- infill[nrow(infill),]
     names(bottomrowinfill) <- names(original)
     original <- rbind(bottomrowinfill, original)
@@ -87,3 +88,6 @@ joinBlocks <- function(original, infill, minGap = 120, minBlock = 120, typekey =
   original <- original[order(original[,1]),]
   return(original)
 }
+
+
+
