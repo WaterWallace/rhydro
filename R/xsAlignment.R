@@ -9,14 +9,21 @@
 #'
 #' @examples
 #'
+#' # NOT RUN #
 #' #DRL <- getXSSurvey(client, "1080025", bucket = "tsdata3")
-#' load("data/DRLXS.rda") # example site
+#' #
+#' data(DRLXS) # example site
+#'
+#' head(DRL$RP)
+#' head(DRL$points[[2]])
 #'
 #' # align DRL points to RP's RP1 and RP2 for a specific cross section
 #' aligned <- xsAlignment(DRL$points[[2]],
 #'                        DRL$RP,
 #'                        originRP = "RP1",
 #'                        alignRP = "RP2")
+#'
+#' head(aligned)
 #'
 #' # align all cross sections
 #' aligned <- lapply(DRL$points, xsAlignment,
@@ -27,21 +34,37 @@
 #' @export
 #'
 #'
-xsAlignment <- function(xs, rp, originRP, alignRP)
+xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin = NULL)
 {
   origin.new <- xs %>% dplyr::filter(rpid == originRP) # surveyed primary benchmark
   align.new <- xs %>% dplyr::filter(rpid == alignRP) # surveyd second point to adjust angle
-  origin.RP <- rp %>% dplyr::filter(rpid == originRP) # stored primary benchmark
-  align.RP <- rp %>% dplyr::filter(rpid == alignRP) # stored second benchmark
+  if(is.null(rp))
+  {
+    origin.RP <- xs %>% dplyr::filter(rpid == originRP) # stored primary benchmark
+    align.RP <- xs %>% dplyr::filter(rpid == alignRP) # stored second benchmark
+  }else{
+    stopifnot("Not enough RP's" = nrow(rp) > 1 )
+    origin.RP <- rp %>% dplyr::filter(rpid == originRP) # stored primary benchmark
+    align.RP <- rp %>% dplyr::filter(rpid == alignRP) # stored second benchmark
+  }
 
-  # get adjustment angle against RP's
-  angle <- rpAlign(origin.new,
-                   align.new,
-                   origin.RP,
-                   align.RP)
+  #if no override angle
+  if(is.null(angle))
+  {
+    # get adjustment angle against RP's
+    angle <- rpAlign(origin.new,
+                     align.new,
+                     origin.RP,
+                     align.RP)
+  }
 
   # rotate to original alignment
   rotated <- matrixRotate(xs, angle)
+
+  # override origin
+  if(!is.null(origin)){
+    origin.RP <- data.frame(x = origin[1], y = origin[2], z = origin[3])
+  }
 
   # translate to stored primary benchmark
   rotated.origin <- rotated %>% dplyr::filter(rpid == originRP)
@@ -52,6 +75,4 @@ xsAlignment <- function(xs, rp, originRP, alignRP)
   )
 
 }
-
-
 

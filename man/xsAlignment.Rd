@@ -4,7 +4,7 @@
 \alias{xsAlignment}
 \title{Rotate x,y,z coordinates around an axis}
 \usage{
-xsAlignment(xs, rp, originRP, alignRP)
+xsAlignment(xs, rp = NULL, originRP, alignRP, angle = NULL, origin = NULL)
 }
 \arguments{
 \item{xs}{dataframe, columns required x, y, z, rpid (+optional meta)}
@@ -23,14 +23,21 @@ Rotate x,y,z coordinates around an axis
 }
 \examples{
 
+# NOT RUN #
 #DRL <- getXSSurvey(client, "1080025", bucket = "tsdata3")
-load("data/DRLXS.rda") # example site
+#
+data(DRLXS) # example site
+
+head(DRL$RP)
+head(DRL$points[[2]])
 
 # align DRL points to RP's RP1 and RP2 for a specific cross section
 aligned <- xsAlignment(DRL$points[[2]],
                        DRL$RP,
                        originRP = "RP1",
                        alignRP = "RP2")
+
+head(aligned)
 
 # align all cross sections
 aligned <- lapply(DRL$points, xsAlignment,
