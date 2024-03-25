@@ -9,11 +9,7 @@ matrixTranslate(m, translation = c(0, 0, 0))
 \arguments{
 \item{m}{dataframe, with columns "x", "y", "z"}
 
-\item{x}{float, x axis offset}
-
-\item{y}{float, x axis offset}
-
-\item{z}{float, x axis offset}
+\item{translation}{vector, length 3, 1=x, 2=y, 3=z}
 }
 \value{
 dataframe, translated input dataframe

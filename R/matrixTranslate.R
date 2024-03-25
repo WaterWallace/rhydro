@@ -1,9 +1,7 @@
 #' Translate x,y,z coordinates by offset
 #'
 #' @param m dataframe, with columns "x", "y", "z"
-#' @param x float, x axis offset
-#' @param y float, x axis offset
-#' @param z float, x axis offset
+#' @param translation vector, length 3, 1=x, 2=y, 3=z
 #'
 #' @return dataframe, translated input dataframe
 #'

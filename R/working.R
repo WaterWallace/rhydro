@@ -130,6 +130,8 @@ DRL$RP
 
 is.null(testxs$RP)
 
+
+
 }
 
 
@@ -146,12 +148,13 @@ if(1 == 0)
   # align
   aligned <- xsAlignment(newxs$points[[1]], newxs$RP, "RP1", "RP2", angle = 180, origin = c(0,1500,10) )
 
+  ##
   # import RP's
+  ##
+  # include only RP lines
   aligned <- aligned %>% dplyr::filter(rpid != "")
-
-  # split
+  # split to groups
   aligned <- aligned %>% split(aligned$rpid)
-
   # import each RP
   for(rp in aligned){
     print(rp)

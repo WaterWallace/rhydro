@@ -14,6 +14,10 @@ xsAlignment(xs, rp = NULL, originRP, alignRP, angle = NULL, origin = NULL)
 \item{originRP}{string, name of primary reference point (that new xs is shifted to)}
 
 \item{alignRP}{string, name of secondary reference point ( that determiens alignment angle )}
+
+\item{angle}{float, override angle}
+
+\item{origin}{vector, length 3, override origin, 1=x, 2=y, 3=z}
 }
 \value{
 dataframe, rotated

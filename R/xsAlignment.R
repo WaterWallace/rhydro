@@ -4,6 +4,8 @@
 #' @param rp data.frame, columns required x, y, z, rpid (+optional meta)
 #' @param originRP string, name of primary reference point (that new xs is shifted to)
 #' @param alignRP string, name of secondary reference point ( that determiens alignment angle )
+#' @param angle float, override angle
+#' @param origin vector, length 3, override origin, 1=x, 2=y, 3=z
 #'
 #' @return dataframe, rotated
 #'

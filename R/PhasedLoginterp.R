@@ -234,7 +234,7 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
 
   if(convertedList[1,1] > stagedf[1,1]) message("warning: areas trimmed to match lookup dates")
 
-  head(convertedList)
+  #head(convertedList)
   f.out <- approxfun(convertedList$Time, convertedList$Value, na.rm = FALSE)
   if(QCPresent){
     f.qc <- approxfun(convertedList$Time, convertedList$QC)
