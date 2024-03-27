@@ -1,6 +1,7 @@
 #' Rotate x,y,z coordinates around an axis
 #'
 #' @param xs dataframe, columns required x, y, z, rpid (+optional meta)
+#' Where multiple lines for the same rpid exist i.e. closing a cross section, it gets the mean
 #' @param rp data.frame, columns required x, y, z, rpid (+optional meta)
 #' @param originRP string, name of primary reference point (that new xs is shifted to)
 #' @param alignRP string, name of secondary reference point ( that determiens alignment angle )
@@ -38,8 +39,15 @@
 #'
 xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin = NULL)
 {
-  origin.new <- xs %>% dplyr::filter(rpid == originRP) # surveyed primary benchmark
-  align.new <- xs %>% dplyr::filter(rpid == alignRP) # surveyd second point to adjust angle
+  meanCoords <- function(newCoords)
+  {
+    meta <- newCoords %>% dplyr::select(-c(x,y,z))
+    coords <- newCoords %>% dplyr::select(c(x,y,z))
+
+    cbind(meta[1,], coords %>% colMeans %>% t)
+  }
+  origin.new <- xs %>% dplyr::filter(rpid == originRP) %>% meanCoords # surveyed primary benchmark
+  align.new <- xs %>% dplyr::filter(rpid == alignRP) %>% meanCoords # surveyd second point to adjust angle
   if(is.null(rp))
   {
     origin.RP <- xs %>% dplyr::filter(rpid == originRP) # stored primary benchmark
@@ -69,7 +77,7 @@ xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin =
   }
 
   # translate to stored primary benchmark
-  rotated.origin <- rotated %>% dplyr::filter(rpid == originRP)
+  rotated.origin <- rotated %>% dplyr::filter(rpid == originRP) %>% meanCoords()
   matrixTranslate(rotated, translation = c(
     origin.RP$x - rotated.origin$x,
     origin.RP$y - rotated.origin$y,
@@ -77,4 +85,6 @@ xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin =
   )
 
 }
+
+
 
