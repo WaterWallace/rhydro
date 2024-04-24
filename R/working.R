@@ -1,6 +1,14 @@
 
 if(1==0)
 {
+  library(influxdbclient)
+
+
+  client <- InfluxDBClient$new(url = "https://eastus-1.azure.cloud2.influxdata.com",
+                               token = token,
+                               org = "stephen.wallace@des.qld.gov.au")
+
+
 
 getXSSurvey <- function(client, gsnumber, bucket, latest = TRUE)
 {
@@ -35,6 +43,8 @@ getXSSurvey <- function(client, gsnumber, bucket, latest = TRUE)
     outputlist[["RP"]] <- do.call(rbind, outputlist[["RP"]])
     names(outputlist[["RP"]]) <- names(outputlist[["RP"]]) %>% gsub("_time", "time", .)
 
+    outputlist[["RP"]]$time <- outputlist[["RP"]]$time %>% as.POSIXct
+
     if(latest)
     {
       outputlist[["RP"]] <- outputlist[["RP"]]  %>% arrange(desc(time)) %>%
@@ -47,12 +57,19 @@ getXSSurvey <- function(client, gsnumber, bucket, latest = TRUE)
   # change y to double
   outputlist$points <- outputlist$points %>% lapply(function(x) {
     x$y <- x$y %>% as.double
+    names(x) <- names(x) %>% gsub("_time", "time", .)
+    x$time <- x$time %>% as.POSIXct
     return(x)
   })
 
   return(outputlist)
 
 }
+
+
+DRLtest <- getXSSurvey(client, "1080025", bucket="test")
+DRLtest
+
 
 DRL <- getXSSurvey(client, "1080025", bucket="tsdata3")
 DRL$points[[1]]$rpid
@@ -143,7 +160,9 @@ if(1 == 0)
   influxUpdateXS(client, "1080025", xsid = "TEST", xs = xs, bucket = "test")
 
   #get recently imported survey
-  newxs <- getXSSurvey(client, "1080025", "test")
+  newxs <- getXSSurvey(client, "testsite", "test")
+
+  newxs
 
   # align
   aligned <- xsAlignment(newxs$points[[1]], newxs$RP, "RP1", "RP2", angle = 180, origin = c(0,1500,10) )

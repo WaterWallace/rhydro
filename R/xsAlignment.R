@@ -86,5 +86,3 @@ xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin =
 
 }
 
-
-
