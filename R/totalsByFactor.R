@@ -1,6 +1,10 @@
+if(1 == 0)
+{
+
 library(dplyr)
 library(ccInterp)
 library(hydroTSM)
+library(data.table)
 spliceTimeFlow <- function(spliced) #input as data.frame( Time, Data, QC)
 {
   tsMean <- function(df, Sum=0)
@@ -169,13 +173,18 @@ ranges <- q$`2015-08-18 12:00:40`$model1$Calcs %>% mutate(mwvpercentile = f.mwvp
 unique(ranges$range)
 
 
+
+
+
 # function input
 
-addFactorBoundaries <- function(df, bias = "high")
+addFactorBoundaries <- function(df, bias = 1)
 {
   df <- df %>% mutate(factorPlusOne = tail(factor, -1) %>% c(0) ) %>%
     mutate(factorMinsOne = c(0, head(factor, -1) ))
 
+  if (bias == 1)
+  {
   # duplicates
   dupes <- df %>% dplyr::filter(factorPlusOne > factor & factorMinsOne > factor) %>%
     mutate(factor = ( pmax(factorPlusOne, factorMinsOne)))
@@ -185,6 +194,19 @@ addFactorBoundaries <- function(df, bias = "high")
 
   minusone <- df %>% dplyr::filter(factorMinsOne > factor) %>%
     mutate(factor = factorMinsOne)
+
+  }else if(bias == 0)
+  {
+  dupes <- df %>% dplyr::filter(factorPlusOne < factor & factorMinsOne < factor) %>%
+      mutate(factor = ( pmin(factorPlusOne, factorMinsOne)))
+
+  plusone <- df %>% dplyr::filter(factorPlusOne < factor) %>%
+    mutate(factor = factorPlusOne)
+
+  minusone <- df %>% dplyr::filter(factorMinsOne < factor) %>%
+    mutate(factor = factorMinsOne)
+
+  }
 
   # join data
   df <- rbind(df[!(df$ts %in% dupes$ts),],
@@ -236,7 +258,12 @@ addFactorBoundaries <- function(df, bias = "high")
     {
       if(nrow(splitdf[[spliti]]) == 1)
       {
-        splitdf[[spliti]]$factor <- max(splitdf[[spliti]]$factorPlusOne, splitdf[[spliti]]$factorMinsOne)
+        if(bias == 1)
+        {
+          splitdf[[spliti]]$factor <- max(splitdf[[spliti]]$factorPlusOne, splitdf[[spliti]]$factorMinsOne)
+        }else if (bias == 0){
+          splitdf[[spliti]]$factor <- max(splitdf[[spliti]]$factorPlusOne, splitdf[[spliti]]$factorMinsOne)
+        }
       }
     }
     # join list
@@ -248,7 +275,8 @@ addFactorBoundaries <- function(df, bias = "high")
 
 
 }
-totalsByFactor <- function(df)
+
+totalsByFactor <- function(df, bias = 1)
 {
 
   df <- df %>% mutate(factor = as.factor(factor))
@@ -259,7 +287,7 @@ totalsByFactor <- function(df)
   df$factor <-  df$factor %>% as.numeric
 
   # add boundaries to original dataframe
-  dfBounds <- addFactorBoundaries(df)
+  dfBounds <- addFactorBoundaries(df, bias)
   # split by runs
   dfBounds <- dfBounds %>% mutate(run = rleid(factor)) %>% group_split(run)
   # empty matrix
@@ -280,11 +308,23 @@ totalsByFactor <- function(df)
   return(boundSums)
 }
 
-#df <- data.frame(ts = seq(Sys.time()-60*60*24, Sys.time(), length.out = 500  ),
-#             numeric = cumsum(rnorm(500, 0, 10)),
-#             factor = sample(c(10,20,30), 500, replace = TRUE))
+View(df)
+
+
+df <- data.frame(ts = seq(Sys.time()-60*60*24, Sys.time(), length.out = 500  ),
+             numeric = cumsum(rnorm(500, 0, 10)),
+             factor = sample(c(10,20,30), 500, replace = TRUE))
+totalsByFactor(df, bias = 1)
+totalsByFactor(df, bias = 0)
+
+ranges <- q$`2015-08-18 12:00:40`$model1$Calcs %>% mutate(mwvpercentile = f.mwvpercentile(Timestamp)) %>% na.omit %>%
+  mutate(range = cut(mwvpercentile, c(0, 0.66, 2.5, 100) ))
+unique(ranges$range)
+
 df <- tibble(ts = ranges$Timestamp, numeric = ranges$Q, factor = ranges$range)
 totals <- totalsByFactor(df)
+
+sum(totals[,2])
 
 
 sum( totals[1:4,2] )
@@ -451,4 +491,4 @@ df <- data.frame(Time = ranges$Timestamp, Data = ranges$Q, QC = ranges$range %>%
 totalsOld <- spliceTimeFlow(df)
 
 
-
+}

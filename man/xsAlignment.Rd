@@ -7,7 +7,8 @@
 xsAlignment(xs, rp = NULL, originRP, alignRP, angle = NULL, origin = NULL)
 }
 \arguments{
-\item{xs}{dataframe, columns required x, y, z, rpid (+optional meta)}
+\item{xs}{dataframe, columns required x, y, z, rpid (+optional meta)
+Where multiple lines for the same rpid exist i.e. closing a cross section, it gets the mean}
 
 \item{rp}{data.frame, columns required x, y, z, rpid (+optional meta)}
 
