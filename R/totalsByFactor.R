@@ -164,20 +164,29 @@ hourly <- q$Predictors %>% dplyr::select(c(Timestamp, Event)) %>%
 hourly %>% plot(Inst ~ fdc, data=., log = "y")
 f.fdcMWV <- splinefun(hourly$Inst, hourly$fdc*100)
 
-mwvpercentile <- q$Predictors %>% mutate(Percentile = f.fdcMWV(Event))
+mwvpercentile <- q$Predictors %>% mutate(Percentile = f.fdcMWV(Event)) %>% na.omit
+
+# prevent splinefun from overranging
+# this will crash it if there's nothing there though
+mwvpercentile[mwvpercentile$Event > hourly$Inst %>% max, ]$Percentile <- 0
+mwvpercentile[mwvpercentile$Event < hourly$Inst %>% min, ]$Percentile <- 100
+
 f.mwvpercentile <- approxfun(mwvpercentile$Timestamp, mwvpercentile$Percentile)
+
+ranges <- q$`2015-08-18 12:00:40`$model1$Calcs %>% mutate(mwvpercentile = f.mwvpercentile(Timestamp)) %>% na.omit
+#ranges$mwvpercentile
+
+#range(ranges$mwvpercentile)
 
 # add mwv percentile to discharge
 ranges <- q$`2015-08-18 12:00:40`$model1$Calcs %>% mutate(mwvpercentile = f.mwvpercentile(Timestamp)) %>% na.omit %>%
-  mutate(range = cut(mwvpercentile, seq(0,100,5) ))
+  mutate(range = cut(mwvpercentile, c(seq(0,10,1),seq(15,100,5)) ))
 unique(ranges$range)
 
 
-
-
-
+library(dplyr)
+library(data.table)
 # function input
-
 addFactorBoundaries <- function(df, bias = 1)
 {
   df <- df %>% mutate(factorPlusOne = tail(factor, -1) %>% c(0) ) %>%
@@ -279,6 +288,10 @@ addFactorBoundaries <- function(df, bias = 1)
 totalsByFactor <- function(df, bias = 1)
 {
 
+  # bias = 1, bias toward the higher number on factor boundary
+  # bias = 0, bias toward the lower number on factor boundary
+  stopifnot ( "Can not have NA's in factor" = df$factor[ is.na(df$factor) ] %>% length == 0 )
+
   df <- df %>% mutate(factor = as.factor(factor))
   numlevels <- df$factor %>% unique %>% length
   previousLevels <- levels(df$factor)
@@ -290,6 +303,7 @@ totalsByFactor <- function(df, bias = 1)
   dfBounds <- addFactorBoundaries(df, bias)
   # split by runs
   dfBounds <- dfBounds %>% mutate(run = rleid(factor)) %>% group_split(run)
+
   # empty matrix
   boundSums <- matrix(rep(0, length(unique(df$factor))) )
   rownames(boundSums) <- previousLevels
@@ -308,21 +322,24 @@ totalsByFactor <- function(df, bias = 1)
   return(boundSums)
 }
 
-View(df)
+#View(df)
 
-
-df <- data.frame(ts = seq(Sys.time()-60*60*24, Sys.time(), length.out = 500  ),
+df <- data.frame(ts = seq(Sys.time()-60*60*24, Sys.time(), length.out = 100  ),
              numeric = cumsum(rnorm(500, 0, 10)),
              factor = sample(c(10,20,30), 500, replace = TRUE))
 totalsByFactor(df, bias = 1)
-totalsByFactor(df, bias = 0)
+#totalsByFactor(df, bias = 0)
 
-ranges <- q$`2015-08-18 12:00:40`$model1$Calcs %>% mutate(mwvpercentile = f.mwvpercentile(Timestamp)) %>% na.omit %>%
-  mutate(range = cut(mwvpercentile, c(0, 0.66, 2.5, 100) ))
-unique(ranges$range)
+
+#ranges <- q$`2015-08-18 12:00:40`$model1$Calcs %>% mutate(mwvpercentile = f.mwvpercentile(Timestamp)) %>% na.omit %>%
+#  mutate(range = cut(mwvpercentile, c(0, 0.66, 2.5, 100) ))
+#unique(ranges$range)
 
 df <- tibble(ts = ranges$Timestamp, numeric = ranges$Q, factor = ranges$range)
+#df[is.na(df$factor),]
+
 totals <- totalsByFactor(df)
+totals
 
 sum(totals[,2])
 
@@ -330,12 +347,21 @@ sum(totals[,2])
 sum( totals[1:4,2] )
 sum( totals[1:4,2] )
 
-totals %>% as.data.frame
+totals <- totals %>% as.data.frame
 totals <- cbind(totals, seq(1, nrow(totals)))
 
-totals[1:4,2] %>% sum
+totals[1:12,2] %>% sum
+
 totals[5:16,2] %>% sum
 totals[17:20,2] %>% sum
+
+
+splitted <- strsplit( row.names(totals), split = "," ) %>% do.call(rbind, .)
+totals <- mutate( totals, Percentile = as.numeric(gsub(".*?([0-9]+).*", "\\1", splitted[,2]) ))
+totals <- mutate( totals, Accum = cumsum(PercentVolume ))
+plot(data = totals, Accum ~ Percentile, log = "xy")
+f.accum <- splinefun(totals$Percentile, totals$Accum)
+lines(f.accum(Percentile) ~ Percentile, data = totals)
 
 # re add levels
 #df$factor <- as.factor(df$factor)

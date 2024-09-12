@@ -54,26 +54,26 @@ matrixRotate <- function(m, deg = 0, rotateaxis = "z", origin = c(0,0,0))
 {
   stopifnot("origin should be length 3" = length(origin) == 3 )
   stopifnot("rotateaxis should be x, y or z" = (rotateaxis == "x" |rotateaxis == "y" |rotateaxis == "z"))
+  stopifnot("deg can't be a vector" = (length(deg) > 1))
 
   meta <- m %>% select(-c(x,y,z))
   origin <- unlist(origin)
   m <- m %>% select(c(x,y,z))
   m <- m %>% matrixTranslate(-origin) %>%
-          t %>%
-          as.matrix
+    t %>%
+    as.matrix
   rads <- deg2rad(deg)
 
   #Get transformation matrix
   m <- switch(rotateaxis,
-         "x" = matrix(c(1,0,0,0,cos(rads),sin(rads),0,-sin(rads),cos(rads)), nrow=3),
-         "y" = matrix(c(cos(rads),0,-sin(rads),0,1,0,sin(rads),0,cos(rads)), nrow=3),
-         "z" = matrix(c(cos(rads),sin(rads),0, -sin(rads),cos(rads),0,0,0,1), nrow=3)
-         ) %*% m %>% t %>% as.data.frame # Multily transform by input matrix
+              "x" = matrix(c(1,0,0,0,cos(rads),sin(rads),0,-sin(rads),cos(rads)), nrow=3),
+              "y" = matrix(c(cos(rads),0,-sin(rads),0,1,0,sin(rads),0,cos(rads)), nrow=3),
+              "z" = matrix(c(cos(rads),sin(rads),0, -sin(rads),cos(rads),0,0,0,1), nrow=3)
+  ) %*% m %>% t %>% as.data.frame # Multily transform by input matrix
   names(m) <- c("x","y","z")
 
   return( matrixTranslate(m, origin) %>%  cbind(meta) )
 }
-
 
 
 
