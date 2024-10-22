@@ -53,8 +53,8 @@
 matrixRotate <- function(m, deg = 0, rotateaxis = "z", origin = c(0,0,0))
 {
   stopifnot("origin should be length 3" = length(origin) == 3 )
-  stopifnot("rotateaxis should be x, y or z" = (rotateaxis == "x" |rotateaxis == "y" |rotateaxis == "z"))
-  stopifnot("deg can't be a vector" = (length(deg) > 1))
+  stopifnot("rotateaxis should be x, y or z" = (rotateaxis == "x" | rotateaxis == "y" | rotateaxis == "z"))
+  stopifnot("deg can't be a vector" = (length(deg) == 1))
 
   meta <- m %>% select(-c(x,y,z))
   origin <- unlist(origin)
