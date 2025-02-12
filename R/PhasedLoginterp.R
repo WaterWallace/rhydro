@@ -117,9 +117,6 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
 
   ratingsTimesList <- function(starttimes, timestamps) # creates a list of times of models
   {
-    #RatePer, stagedf[,1]
-    starttimes <- RatePer
-    timestamps <- stagedf[,1]
 
     firstDataPoint <-  timestamps[1]
     lastDataPoint <- timestamps[length(timestamps)]

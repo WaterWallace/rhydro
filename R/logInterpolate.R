@@ -47,13 +47,6 @@
 #' logInterpolate(rating,c(1.9, 6.1, 9.5))
 #'
 #' @export
-#'
-#'
-#rating <- lookup1
-#num <- stagesubset[,2]
-#logOffset <- thisLog
-
-
 logInterpolate <- function (rating, num, logOffset = 0, base = 10)
 {
 
@@ -67,32 +60,40 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
   }
 
 
-  ctf <- min(rating[rating[2] > 0,1]) # return the reference line with the minimum >0 lookup value.
-  if (logOffset == 0) {
+  getLogOffs <- function(rating, logOffset){
+    if(rating[rating[2] > 0] %>% length == 0){  return(min(rating[,1]) - 0.01) }
+    if (logOffset > 0) return(logOffset)
 
-    zeroQ <- rating %>% filter(.[[2]] <= 0)
-
-    if (nrow(zeroQ) > 0)
-    {
-      logOffset <- max(zeroQ[1]) # max height, of outputs less than or equal to zero
-    }else{
-      logOffset <- ctf-0.01 # set logOffset to 0.01 less than ctf
+    ZeroQ <- rating %>% filter(.[[2]] <= 0)
+    if (nrow(ZeroQ) > 0) {
+      return( logOffset <- max(ZeroQ[1]) )# max height, of outputs less than or equal to zero
     }
+    return( min(rating[rating[2] > 0,1]) - 0.01 ) # set logOffset to 0.01 less than ctf
   }
 
+  logOffset <- getLogOffs(rating, logOffset)
 
   num <- num - logOffset
-
   rating[,1] <- rating[,1] - logOffset # subtract log offset from ref
   rating <- rating[rating[,1] > 0 ,] # exclude levels zero or less once log offset removed
 
   num[num < 0] <- 0
+
   f.logarea <- approxfun(log(rating, base=base))
   interpvalue <- base ^ ( f.logarea(log(num, base=base)) )
 
   interpvalue <- data.frame(ht = (num+logOffset), q = interpvalue)
-  interpvalue$q[interpvalue$ht < ctf] <- 0
 
+  # this ones have choppped out any zeroes
+  # if intervalue height is less than the min
+  #interpvalue$q[interpvalue$ht <  (rating[,1]+logOffset) %>% min] <- 0
+  interpvalue <- interpvalue %>%
+    mutate(q = if_else(ht < min(rating[[1]] + logOffset), 0, q))
+
+  if( max(interpvalue %>% dplyr::select(ht)) > max(rating[[1]] + logOffset) )
+  {
+    message("rating table exceeded, replaced with NA")
+  }
 
   if (length(rating) == 3)
   {
@@ -102,7 +103,3 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
     return(data.frame(value = interpvalue$q) )
   }
 }
-
-
-
-

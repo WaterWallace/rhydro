@@ -152,7 +152,7 @@ spliceTimeFlow <- function(spliced) #input as data.frame( Time, Data, QC)
 }
 
 fname <- "C:/Users/wallacesw/Documents/GitHub/DischargeCalcsRMD/1120053.Discharge.rds"
-
+spliced <- readRDS("data/spliced.RDS")
 
 q <- readRDS(fname) # included most recent discharge output
 
@@ -285,8 +285,14 @@ addFactorBoundaries <- function(df, bias = 1)
 
 }
 
+df <- spliced
+
 totalsByFactor <- function(df, bias = 1)
 {
+
+  stopifnot ( "dataframe must be 3 comlumn (timestamp, numeric and factor)" = length(df) == 3 )
+
+  colnames(df) <- c("ts", "numeric", "factor")
 
   # bias = 1, bias toward the higher number on factor boundary
   # bias = 0, bias toward the lower number on factor boundary
@@ -304,31 +310,49 @@ totalsByFactor <- function(df, bias = 1)
   # split by runs
   dfBounds <- dfBounds %>% mutate(run = rleid(factor)) %>% group_split(run)
 
+  matrix(c(1,2,3,4), ncol = 2 )
+  ?matrix
+
   # empty matrix
-  boundSums <- matrix(rep(0, length(unique(df$factor))) )
+  boundSums <- matrix( rep(0, 2*length(unique(df$factor))), ncol = 2 )
   rownames(boundSums) <- previousLevels
+
+  #dfBounds[[1]]
+
 
   # accumulate flow in ML for each factor
   for(bound in dfBounds)
   {
-    boundML <- pracma::trapz(bound$ts %>% as.numeric, bound$numeric) / 1000
-    boundSums[[bound$factor[1]]] <- boundSums[[bound$factor[1]]] + boundML
+    boundML <- pracma::trapz(bound$ts %>% as.numeric, bound$numeric) / 100+0
+    boundTime <- range(bound$ts)  %>% diff() %>% as.numeric(units = "hours")
+
+    boundSums[[bound$factor[1],1]] <- boundSums[[bound$factor[1],1]] + boundML
+    boundSums[[bound$factor[1],2]] <- boundSums[[bound$factor[1],2]] + boundTime
   }
 
+  #aggrDur <- aggregate(Duration ~ QC, data=QCLines, sum, na.action = na.pass)
+  #sum(aggrDur$Duration, na.rm=TRUE)
 
-  boundSums <- cbind (boundSums, total = ( boundSums / sum(boundSums) * 100 ))
-  colnames(boundSums) <- c("Volume(ML)","PercentVolume")
+  boundSums <- cbind (boundSums, FlowPcnt = ( boundSums[,1] / sum(boundSums[,1]) * 100 ))
+  boundSums <- cbind (boundSums, TimePcnt = ( boundSums[,2] / sum(boundSums[,2]) * 100 ))
 
-  return(boundSums)
+  #boundSums <- cbind (boundSums, total = ( boundSums / sum(boundSums) * 100 ))
+
+  colnames(boundSums) <- c("Volume(ML)","Time(hours)","PercentVolume","Time(%)")
+
+  return(boundSums %>% round(1) )
 }
 
 #View(df)
 
+df$factor
 df <- data.frame(ts = seq(Sys.time()-60*60*24, Sys.time(), length.out = 100  ),
              numeric = cumsum(rnorm(500, 0, 10)),
              factor = sample(c(10,20,30), 500, replace = TRUE))
 totalsByFactor(df, bias = 1)
-#totalsByFactor(df, bias = 0)
+
+totalsByFactor(spliced, bias = 1)
+
 
 
 #ranges <- q$`2015-08-18 12:00:40`$model1$Calcs %>% mutate(mwvpercentile = f.mwvpercentile(Timestamp)) %>% na.omit %>%
