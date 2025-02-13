@@ -46,12 +46,6 @@ xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin =
     cbind(meta[1,], coords %>% colMeans %>% t)
   }
 
-  recentCoords <- function(rpCoords)
-  {
-    rpCoords <- rpCoords[order(rpCoords$`_time`),]
-    rpCoords <- rpCoords[nrow(rpCoords),]
-  }
-
   origin.new <- xs %>% dplyr::filter(rpid == originRP) %>% meanCoords # surveyed primary benchmark
   align.new <- xs %>% dplyr::filter(rpid == alignRP) %>% meanCoords # surveyd second point to adjust angle
   if(is.null(rp))
@@ -60,8 +54,8 @@ xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin =
     align.RP <- xs %>% dplyr::filter(rpid == alignRP) # stored second benchmark
   }else{
     stopifnot("Not enough RP's" = nrow(rp) > 1 )
-    origin.RP <- rp %>% dplyr::filter(rpid == originRP) %>% recentCoords # stored primary benchmark
-    align.RP <- rp %>% dplyr::filter(rpid == alignRP) %>% recentCoords # stored second benchmark
+    origin.RP <- rp %>% dplyr::filter(rpid == originRP) %>% arrange(time) %>% tail(1) # stored primary benchmark
+    align.RP <- rp %>% dplyr::filter(rpid == alignRP) %>% arrange(time) %>% tail(1) # stored second benchmark
   }
 
   #if no override angle
@@ -91,4 +85,3 @@ xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin =
   )
 
 }
-
