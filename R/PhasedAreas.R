@@ -26,17 +26,18 @@
 #' @examples
 #'
 #'
-#' #'
+#'
 #' #mrdxs <- getXSDB(client, "1110056", bucket = "tsdata3" )
 #' #mrdht <- getTSDB(client, "1110056", bucket= "tsdata3" )
 #' data(mrd)
 #'
-#' mrdht <- dplyr::select(mrdht[[1]], c(time, value_Level))
-#' areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht)
-#' plot(mrdht$time, areas$Value)
-#' plot(mrdht$value_Level, areas$Value)
+#'   mrdht <- dplyr::select(mrdht[[1]], c(time, value_Level))
+#'  areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht)
+#'  plot(Value ~ timestamp, data = areas)
+#'  plot(areas$Value, mrdht$value_Level, log = "x")
 #'
-#' library(ggplot2)
+#' require(ggplot2)
+#' require(dplyr)
 #' # Set cross sections
 #' xs <- data.frame(CHAIN = c(1,2,3,4,5,6,7),
 #'     RL = c(10,9,7,4,8,9,11)
@@ -93,7 +94,8 @@
 #'   )
 #'
 #' # Apply phased rating tables to stage
-#' Stage <- cbind(Stage, PhasedAreas(Periods, XSDF, Stage))
+#' areas <- PhasedAreas(Periods, XSDF, Stage)
+#' Stage <- Stage %>% mutate(Value = approx(areas$timestamp, areas$Value, timestamp)$y)
 #' # Heights starting before rating periods - No values before period starts.
 #' plot(Stage$timestamp, Stage$Value)
 #'
@@ -106,7 +108,9 @@
 #'     )
 #'
 #' # Apply phased rating tables to stage
-#' Stage <- cbind(Stage, PhasedAreas(Periods, XSDF, Stage))
+#' areas <- PhasedAreas(Periods, XSDF, Stage)
+#' Stage <- Stage %>% mutate(Value = approx(areas$timestamp, areas$Value, timestamp)$y)
+#'
 #' # Heights covering entire rating periods
 #' plot(Stage$timestamp, Stage$Value)
 #'
@@ -116,11 +120,6 @@
 #' @export
 #'
 #'
-#areas <- PhasedAreas(mrdxs$Periods, mrdxs$XS, mrdht[[1]])
-#RatePer <- mrdxs$Periods
-#xsdf <- mrdxs$XS
-#stagedf <- mrdht[[1]]
-
 PhasedAreas <- function(RatePer, xsdf, stagedf )
 {
 

@@ -25,6 +25,7 @@
 #' \itemize{
 #'     \item{*timestamp*}{ posixct, Reference value, i.e. height }
 #'     \item{*height*}{ Numeric, Lookup value, i.e. discharge }
+#'     \item{*QC*}{ Integer, Quality code }
 #'     }
 #' @param offsets *(optional)* dataframe, with columns "PeriodStart", "TableNum", "logOffset"
 #' \itemize{
@@ -99,151 +100,123 @@
 #'
 #' @export
 #'
-
-#RatePer = RatePer
-#points = mrdlookups
-#stagedf = data.frame(timestamp = stagedf[,1],
-#                     height = stagedf[,2])
-
-
-
-# Have to check that it uses only the latest offsets for each TableNum
 PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
 {
 
-  points <- do.call(rbind, points)
-  points <- as.data.frame(points)
-  #points <- points %>% select(!QC)
+  if(min(RatePer$PeriodStart) > min(stagedf[,1]) )  message("Warning: Height data timestamp before rating periods start")
 
-  ratingsTimesList <- function(starttimes, timestamps) # creates a list of times of models
+  QCPresent <- "QC" %in% (points %>% do.call(bind_rows, .) %>% names )
+
+  if(QCPresent & !"QC" %in% (stagedf %>% names) ) # if there are rating qc's
+  # but no input data QC's, add some dummy values that will get overwritten by the rating
   {
-
-    firstDataPoint <-  timestamps[1]
-    lastDataPoint <- timestamps[length(timestamps)]
-
-    if(firstDataPoint > starttimes[nrow(starttimes),1] ) return( cbind(starttimes[nrow(starttimes),], End = lastDataPoint) )
-
-    dfModelTimes <- data.frame( rbind(NA, starttimes),
-                                End = c(starttimes[,1], starttimes[nrow(starttimes),1]) # add end times
-    )
-    dfModelTimes <- dfModelTimes[-1,] # exclude redundant top row
-
-    # include rows that start after first data point
-    headSelect <-  firstDataPoint < dfModelTimes$PeriodStart
-    # include rows that start before last data point
-    tailSelect <- lastDataPoint > dfModelTimes$PeriodStart
-    # expand selection
-    headSelect <- c(headSelect[-1], headSelect[length(headSelect)] )
-    tailSelect <- c(tailSelect[1], tailSelect[-length(tailSelect)] )
-    selection <- (headSelect & tailSelect) # head or tail TRUE
-
-    # exclude any times outside start and end times
-    dfModelTimes <- dfModelTimes[selection,]
-
-    return(dfModelTimes)
+    stagedf <- mutate(stagedf, QC = 1)
   }
 
-  periods <- ratingsTimesList(RatePer, stagedf[,1])
-  convertedList <- list()
-  lenPeriods <- nrow(periods)
+  stopifnot("RatePer must be: PeriodStart TableNum Phased" =
+              RatePer %>% names %in% c("PeriodStart","TableNum","Phased")
+  )
 
-  QCPresent <- 'QC' %in% names(points)
 
-  for(periodNum in 1:lenPeriods)
+  stopifnot("points must be: from to ratingID (QC)" =
+              c("from","to","ratingID") %in% (points %>% do.call(rbind,.) %>% names)
+  )
+
+  if(is.list(points)){
+    points <- do.call(bind_rows, points)
+  }
+  # resplit and name each item
+  points <- split(points, points$ratingID)
+
+  # Add period and and what to phase into
+  periods <- RatePer %>% mutate(End = lead(PeriodStart)) %>%
+  mutate(nextTable = lead(TableNum)) %>%
+  mutate(nextTable = ifelse(Phased, nextTable, TableNum)) %>%
+  mutate(MinutesBetween = difftime(End, PeriodStart, units = "min") %>% as.numeric)
+
+  # make the period end equal to the end of time series
+  periods[nrow(periods),]$End <- max(max(stagedf[,1]), periods[nrow(periods),]$PeriodStart)
+  periods[nrow(periods),]$nextTable <- periods[nrow(periods),]$TableNum
+
+
+  stageList <- list()
+  # loop through periods until the second last one
+  for(period in seq_len(nrow(periods)))
   {
-    # periodNum <- 2
-    thisPeriod <- periods[periodNum,]
-    message(paste("from: ", thisPeriod$PeriodStart, " to: ", thisPeriod$End, thisPeriod$Phased, thisPeriod$TableNum) )
+    start <- periods %>% slice(period) %>% pull(PeriodStart)
+    end <- periods %>% slice(period) %>% pull(End)
 
-    # subset heights
-    if(periodNum < lenPeriods)
+    if(period == max(nrow(periods)))
     {
-      stagesubset <- stagedf[stagedf[,1] >= thisPeriod$PeriodStart & stagedf[,1] < thisPeriod$End,]
+      stagesubset <- stagedf %>%
+        filter(if_any(1, ~ .x >= start))
     }else{
-      stagesubset <- stagedf[stagedf[,1] >= thisPeriod$PeriodStart,]
+      stagesubset <- stagedf %>%
+        filter(if_any(1, ~ .x >= start & .x < end))
     }
 
-    if(nrow(stagesubset) > 0)
+    if(nrow(stagesubset) == 0) next
+
+
+    thistable <- periods %>% slice(period) %>% pull(TableNum)
+    nexttable <- periods %>% slice(period) %>% pull(nextTable)
+
+    if ( !is.null(offsets) )
+    {
+      split_list <- offsets %>%
+        group_by(TableNum) %>%
+        group_split()
+      names(split_list) <- unique(offsets$TableNum)
+
+      thisLog <- split_list[[thistable]] %>% pull(logOffset)
+      nextLog <- split_list[[nexttable]] %>% pull(logOffset)
+    }else
     {
 
-      #thisTable <- points[[paste(thisPeriod$TableNum)]]
-      thisTable <- points[points$ratingID == thisPeriod$TableNum,] # start table
+      thisLog <- 0
+      nextLog <- 0
+    }
 
-      if ( !is.null(offsets) )
-      {
-        thisLog <- offsets[offsets$TableNum == thisPeriod$TableNum,]$logOffset
-      }else
-      {
-        thisLog <- 0
-      }
+    if( ( periods %>% slice(period) %>% pull(Phased) ) & (period < nrow(periods)) ) # phased
+    {
+      minsbetween <- periods %>% slice(period) %>% pull(MinutesBetween)
 
-      lookup1 <- data.frame(thisTable$from, thisTable$to)
-      if (QCPresent) lookup1$QC <- thisTable$QC
+      points[[thistable]]
+      points[[nexttable]]
 
-      phasedareas <- logInterpolate(lookup1, stagesubset[,2], logOffset = thisLog)
+      stageList[[period]] <-  stagesubset %>%
+        mutate(sinceBegin = difftime( .[[1]], start, units="mins" )) %>%
+        mutate(ratio = as.numeric(sinceBegin/minsbetween)) %>%
+        mutate(rating1 = logInterpolate(points[[thistable]] %>%  as.data.frame %>% dplyr::select(contains(c("from", "to", "QC"))), stagesubset[[2]], )) %>%
+        mutate(rating2 = logInterpolate(points[[nexttable]] %>%  as.data.frame %>% dplyr::select(contains(c("from", "to", "QC"))), stagesubset[[2]], )) %>%
+        mutate(Value = rating1$value * (1 - ratio) + rating2$value * ratio)
 
-
-      if(periodNum < lenPeriods & thisPeriod$Phased == 1)
-      {
-        nextPeriod <- periods[(periodNum+1),]
-
-        #nextTable <- points[[paste(nextPeriod$TableNum)]]
-        nextTable <- points[points$ratingID == nextPeriod$TableNum,] # start table
-
-        if ( !is.null(offsets) )
-        {
-          nextLog <- offsets[offsets$TableNum == nextPeriod$TableNum,]$logOffset
-        }else
-        {
-          nextLog <- 0
+        if(QCPresent){
+          stageList[[period]] <- stageList[[period]] %>%
+            mutate(QC = pmax(QC, rating1$qc, rating2$qc))
         }
-        #nextTable <- xsdf[xsdf$n == nextPeriod$TableNum,] # end table
 
-        #lookup2 <- areaLookup(dplyr::select(nextTable, c("CHAIN","RL"))) # get lookup table of next xs
-        #lookup2 <- data.frame(nextTable$from, nextTable$to, nextTable$QC)
-        lookup2 <- data.frame(nextTable$from, nextTable$to)
-        if (QCPresent) lookup2$QC <- nextTable$QC
+    }else{ # not phased
+      stageList[[period]] <- stagesubset %>%
+        mutate(rating1 = logInterpolate(points[[thistable]] %>%
+                                          as.data.frame %>%
+                                          dplyr::select(contains(c("from", "to", "QC"))),
+                                        stagesubset[[2]], )) %>%
+        mutate(Value  = rating1$value)
 
-        phasedareas2 <- logInterpolate(lookup2, stagesubset[,2], logOffset = nextLog) # calculate areas
-
-        #######
-        minutesBetweenRate <- difftime( nextPeriod$PeriodStart, thisPeriod$PeriodStart, units="mins" )
-        sinceBegin <- difftime( stagesubset[,1], thisPeriod$PeriodStart, units="mins" )
-        ratio <- as.numeric(sinceBegin/as.numeric(minutesBetweenRate))
-
-        phasedareas$value <- phasedareas$value*(1-ratio)+phasedareas2$value*ratio
-        if (QCPresent) phasedareas$qc <- pmax(phasedareas$qc, phasedareas2$qc)
-
+      if(QCPresent){
+        stageList[[period]] <- stageList[[period]] %>%
+          mutate(QC = pmax(QC, rating1$qc))
       }
-      convertedList[[periodNum]] <- data.frame(Time = stagesubset[,1],
-                                               Value = phasedareas$value)
 
-
-      if (QCPresent)  convertedList[[periodNum]]$QC <- phasedareas$qc
-
-    }else{
-      # skip empty data
     }
-
+    stageList[[period]] <- stageList[[period]] %>%
+      dplyr::select(contains(c("Time", "Value", "QC")))
   }
 
-  convertedList <- do.call(rbind, convertedList)
+  return(do.call(bind_rows, stageList))
 
-  if(convertedList[1,1] > stagedf[1,1]) message("warning: areas trimmed to match lookup dates")
 
-  #head(convertedList)
-  f.out <- approxfun(convertedList$Time, convertedList$Value, na.rm = FALSE)
-  if(QCPresent){
-    f.qc <- approxfun(convertedList$Time, convertedList$QC)
-    df <- data.frame(Value = f.out(stagedf[,1]),
-                     QC = f.qc(stagedf[,1]))
-
-    return(df)
-  }else{
-    df <- data.frame(Value = f.out(stagedf[,1]))
-    return(df)
-  }
 
 
 }
-

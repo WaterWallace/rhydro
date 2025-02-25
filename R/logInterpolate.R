@@ -52,9 +52,9 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
 
   maxfun <- function(t, y, x, option = "max") {
     f.qual0 <- approxfun(t, y, method = "constant", ties = option,
-                         f = 0)
+                         f = 0, rule = 2)
     f.qual1 <- approxfun(t, y, method = "constant", ties = option,
-                         f = 1)
+                         f = 1, rule = 2)
 
     return(pmax(f.qual0(x), f.qual1(x)))
   }
