@@ -195,6 +195,8 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL, invert = F
     thistable <- periods %>% slice(period) %>% pull(TableNum)
     nexttable <- periods %>% slice(period) %>% pull(nextTable)
 
+    thisLog <- 0
+    nextLog <- 0
     if ( !is.null(offsets) )
     {
       split_list <- offsets %>%
@@ -204,11 +206,6 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL, invert = F
 
       thisLog <- split_list[[thistable]] %>% pull(logOffset)
       nextLog <- split_list[[nexttable]] %>% pull(logOffset)
-    }else
-    {
-
-      thisLog <- 0
-      nextLog <- 0
     }
 
     if( ( periods %>% slice(period) %>% pull(Phased) ) & (period < nrow(periods)) ) # phased
@@ -221,8 +218,16 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL, invert = F
       stageList[[period]] <-  stagesubset %>%
         mutate(sinceBegin = difftime( .[[1]], start, units="mins" )) %>%
         mutate(ratio = as.numeric(sinceBegin/minsbetween)) %>%
-        mutate(rating1 = logInterpolate(points[[thistable]] %>%  as.data.frame %>% dplyr::select(contains(c("from", "to", "QC"))), stagesubset[[2]], )) %>%
-        mutate(rating2 = logInterpolate(points[[nexttable]] %>%  as.data.frame %>% dplyr::select(contains(c("from", "to", "QC"))), stagesubset[[2]], )) %>%
+        mutate(rating1 = logInterpolate(points[[thistable]] %>%
+                                          as.data.frame %>%
+                                          dplyr::select(contains(c("from", "to", "QC"))),
+                                        stagesubset[[2]],
+                                        logOffset = thisLog)) %>%
+        mutate(rating2 = logInterpolate(points[[nexttable]] %>%
+                                          as.data.frame %>%
+                                          dplyr::select(contains(c("from", "to", "QC"))),
+                                        stagesubset[[2]],
+                                        logOffset = nextLog )) %>%
         mutate(Value = rating1$value * (1 - ratio) + rating2$value * ratio)
 
       if(QCPresent){
@@ -235,7 +240,8 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL, invert = F
         mutate(rating1 = logInterpolate(points[[thistable]] %>%
                                           as.data.frame %>%
                                           dplyr::select(contains(c("from", "to", "QC"))),
-                                        stagesubset[[2]], )) %>%
+                                        stagesubset[[2]],
+                                        logOffset = thisLog )) %>%
         mutate(Value  = rating1$value)
 
       if(QCPresent){
