@@ -32,6 +32,7 @@
 #'     \item{*TableNum*}{ String, the section ID of the cross section}
 #'     \item{*logOffset*}{ Numeric, logOffset of this rating table, If zero, offset will be calculated }
 #'     }
+#' @param invert Boolean, if TRUE will invert the rating table so it calculates the input from the output
 #'
 #' @return Vector of log interpolated data as read from the rating table,
 #'     same timestep as the input height.
@@ -100,15 +101,17 @@
 #'
 #' @export
 #'
-PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
+PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL, invert = FALSE )
 {
+  ## Didn't have time to work out the log conversions so just created a lookup table every millimetere.
+  ## Works but is inefficient for invert = TRUE
 
   if(min(RatePer$PeriodStart) > min(stagedf[,1]) )  message("Warning: Height data timestamp before rating periods start")
 
   QCPresent <- "QC" %in% (points %>% do.call(bind_rows, .) %>% names )
 
   if(QCPresent & !"QC" %in% (stagedf %>% names) ) # if there are rating qc's
-  # but no input data QC's, add some dummy values that will get overwritten by the rating
+    # but no input data QC's, add some dummy values that will get overwritten by the rating
   {
     stagedf <- mutate(stagedf, QC = 1)
   }
@@ -122,17 +125,47 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
               c("from","to","ratingID") %in% (points %>% do.call(rbind,.) %>% names)
   )
 
+
+  if(invert)
+  {
+    for(ratingnum in 1:length(points))
+    {
+      expandedhts <- seq(
+        range(points[[ratingnum]]$from)[1],
+        range(points[[ratingnum]]$from)[2],
+        by = 0.001
+      )
+      expandedtable <- logInterpolate(points[[ratingnum]] %>%
+                                        as.data.frame %>%
+                                        dplyr::select(from, to, QC), expandedhts)
+
+      # overwrite with expanded table every mm
+      points[[ratingnum]] <- data.frame(from = expandedhts,
+                                        to = expandedtable$value,
+                                        QC = expandedtable$qc,
+                                        ratingID = points[[ratingnum]]$ratingID[1])
+    }
+  }
+
+  #unlist
   if(is.list(points)){
     points <- do.call(bind_rows, points)
+  }
+
+  if(invert){
+    names(points) <- names(points) %>%
+      gsub("to", "temp", .) %>%
+      gsub("from", "to", .) %>%
+      gsub("temp", "from", .)
   }
   # resplit and name each item
   points <- split(points, points$ratingID)
 
   # Add period and and what to phase into
   periods <- RatePer %>% mutate(End = lead(PeriodStart)) %>%
-  mutate(nextTable = lead(TableNum)) %>%
-  mutate(nextTable = ifelse(Phased, nextTable, TableNum)) %>%
-  mutate(MinutesBetween = difftime(End, PeriodStart, units = "min") %>% as.numeric)
+    mutate(nextTable = lead(TableNum)) %>%
+    mutate(nextTable = ifelse(Phased, nextTable, TableNum)) %>%
+    mutate(MinutesBetween = difftime(End, PeriodStart, units = "min") %>% as.numeric)
 
   # make the period end equal to the end of time series
   periods[nrow(periods),]$End <- max(max(stagedf[,1]), periods[nrow(periods),]$PeriodStart)
@@ -146,6 +179,7 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
     start <- periods %>% slice(period) %>% pull(PeriodStart)
     end <- periods %>% slice(period) %>% pull(End)
 
+    # subset
     if(period == max(nrow(periods)))
     {
       stagesubset <- stagedf %>%
@@ -155,9 +189,9 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
         filter(if_any(1, ~ .x >= start & .x < end))
     }
 
-    if(nrow(stagesubset) == 0) next
+    if(nrow(stagesubset) == 0) next    # no data in subset
 
-
+    #Table names
     thistable <- periods %>% slice(period) %>% pull(TableNum)
     nexttable <- periods %>% slice(period) %>% pull(nextTable)
 
@@ -191,10 +225,10 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
         mutate(rating2 = logInterpolate(points[[nexttable]] %>%  as.data.frame %>% dplyr::select(contains(c("from", "to", "QC"))), stagesubset[[2]], )) %>%
         mutate(Value = rating1$value * (1 - ratio) + rating2$value * ratio)
 
-        if(QCPresent){
-          stageList[[period]] <- stageList[[period]] %>%
-            mutate(QC = pmax(QC, rating1$qc, rating2$qc))
-        }
+      if(QCPresent){
+        stageList[[period]] <- stageList[[period]] %>%
+          mutate(QC = pmax(QC, rating1$qc, rating2$qc))
+      }
 
     }else{ # not phased
       stageList[[period]] <- stagesubset %>%
@@ -220,3 +254,5 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL )
 
 
 }
+
+

@@ -4,7 +4,7 @@
 \alias{PhasedLoginterp}
 \title{Calculate cross sectional area for a a range of periods}
 \usage{
-PhasedLoginterp(RatePer, points, stagedf, offsets = NULL)
+PhasedLoginterp(RatePer, points, stagedf, offsets = NULL, invert = FALSE)
 }
 \arguments{
 \item{RatePer}{\emph{dataframe}, with columns \emph{PeriodStart}, \emph{End}, \emph{Phased}, \emph{TableNum}
@@ -26,6 +26,7 @@ PhasedLoginterp(RatePer, points, stagedf, offsets = NULL)
 \itemize{
 \item{\emph{timestamp}}{ posixct, Reference value, i.e. height }
 \item{\emph{height}}{ Numeric, Lookup value, i.e. discharge }
+\item{\emph{QC}}{ Integer, Quality code }
 }}
 
 \item{offsets}{\emph{(optional)} dataframe, with columns "PeriodStart", "TableNum", "logOffset"
@@ -33,6 +34,8 @@ PhasedLoginterp(RatePer, points, stagedf, offsets = NULL)
 \item{\emph{TableNum}}{ String, the section ID of the cross section}
 \item{\emph{logOffset}}{ Numeric, logOffset of this rating table, If zero, offset will be calculated }
 }}
+
+\item{invert}{Boolean, if TRUE will invert the rating table so it calculates the input from the output}
 }
 \value{
 Vector of log interpolated data as read from the rating table,

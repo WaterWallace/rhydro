@@ -77,18 +77,26 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
   rating[,1] <- rating[,1] - logOffset # subtract log offset from ref
   rating <- rating[rating[,1] > 0 ,] # exclude levels zero or less once log offset removed
 
-  num[num < 0] <- 0
+  if(nrow(rating) == 0){
 
-  f.logarea <- approxfun(log(rating, base=base))
-  interpvalue <- base ^ ( f.logarea(log(num, base=base)) )
+    interpvalue <- data.frame(ht = (num+logOffset), q = rep(0, length(num)))
+    message("warning: zero points in rating table")
 
-  interpvalue <- data.frame(ht = (num+logOffset), q = interpvalue)
+  }else{
 
-  # this ones have choppped out any zeroes
-  # if intervalue height is less than the min
-  #interpvalue$q[interpvalue$ht <  (rating[,1]+logOffset) %>% min] <- 0
-  interpvalue <- interpvalue %>%
-    mutate(q = if_else(ht < min(rating[[1]] + logOffset), 0, q))
+    num[num < 0] <- 0
+    rating
+    f.logarea <- approxfun(log(rating, base=base))
+    interpvalue <- base ^ ( f.logarea(log(num, base=base)) )
+
+    interpvalue <- data.frame(ht = (num+logOffset), q = interpvalue)
+
+    # this ones have choppped out any zeroes
+    # if intervalue height is less than the min
+    #interpvalue$q[interpvalue$ht <  (rating[,1]+logOffset) %>% min] <- 0
+    interpvalue <- interpvalue %>%
+      mutate(q = if_else(ht < min(rating[[1]] + logOffset), 0, q))
+  }
 
   if( max(interpvalue %>% dplyr::select(ht)) > max(rating[[1]] + logOffset) )
   {
@@ -97,7 +105,12 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
 
   if (length(rating) == 3)
   {
-    qc <- maxfun(rating[,1], rating[,3], num)
+    if (nrow(rating) > 0){
+      qc <- maxfun(rating[,1], rating[,3], num)
+    }else{
+      qc <- 151
+    }
+
     return(data.frame(value = interpvalue$q, qc = qc))
   }else{
     return(data.frame(value = interpvalue$q) )
