@@ -46,7 +46,6 @@
 #' points(splitTS$Time, splitTS$Noise, col="red")
 #' @export
 #'
-
 splitBlocks <- function(blocklist, newdata, typekey = NULL, include = 1)
 {
 
@@ -105,7 +104,8 @@ splitBlocks <- function(blocklist, newdata, typekey = NULL, include = 1)
   boundsList <- do.call(cbind, boundsList) %>% as.data.frame
   boundsList[,1] <- as.POSIXct(boundsList[,1], origin = "1970-01-01")
   names(boundsList) <- names(newdata)
-  newdata$tags <- f.tags(newdata[,1]) # tag is whether to include or not
+  newdata$tags <- f.tags(as.numeric(newdata[,1])) # tag is whether to include or not
+
   newdata$tags[is.na(newdata$tags)] <- abs(include - 1) # set to the opposite of include
 
   boundsList$tags <- include # include boundaries ( or not )
@@ -135,7 +135,7 @@ splitBlocks <- function(blocklist, newdata, typekey = NULL, include = 1)
   }
 
   splitblocks <- do.call(rbind, splitblocks)
-  return(splitblocks[,-length(splitblocks)])
+  return(splitblocks %>% dplyr::select(-tags))
   #return(splitblocks)
 }
 

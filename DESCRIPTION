@@ -1,7 +1,7 @@
 Package: rhydro
 Type: Package
 Title: Tools for hydrographic data processing in R
-Version: 0.3.4
+Version: 0.3.5
 Author: Stephen Wallace
 Maintainer: Stephen Wallace <stephen.wallace@des.qld.gov.au>
 Description: Hydro tools
@@ -12,5 +12,5 @@ Encoding: UTF-8
 LazyData: true
 Imports: ccInterp, ggplot2, pracma, viridisLite, viridis, influxdbclient, Rlibeemd, reshape2, signal, zoo, MASS, oce, dplyr, EMD, data.table, repmod, stats
 Suggests: 
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.3
 Roxygen: list(markdown = TRUE)

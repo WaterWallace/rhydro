@@ -4,6 +4,44 @@ if(1 == 0)
 library(dplyr)
 library(ccInterp)
 library(hydroTSM)
+
+
+library(ccInterp)
+#ts <- StevesCoolRandomTS(obs = 2000)
+ts <- WMIP_Extract("113006A", param = "preservedQ", START = "19000101", datasource = "A")
+
+library(dplyr)
+library(hydroTSM)
+
+dailyinst <- seq(ts$time[1], ts$time[nrow(ts)], by = 24*60*60)
+dailyinstvalues <- approx(ts$time, ts$value, dailyinst)$y
+dailyinst <- data.frame(time = dailyinst, value = dailyinstvalues)
+dailyinst <- dailyinst %>% arrange(desc(value))
+
+percentile <- 20
+dailyinst[ percentile / 100 * nrow(dailyinst),]
+
+
+dailyinst %>% mutate(rownum = seq.int(nrow(.))) %>%
+  mutate(percentile = rownum / nrow(.) * 100) %>%
+  arrange(time)
+
+
+
+dailyinstvalues %>% head
+(fdc(dailyinstvalues)*100) %>% head
+
+
+percentileranges <- seq(0, 100, by = 10)
+
+data.frame(percentile = percentileranges,
+           value = approx(fdc(dailyinstvalues)*100, dailyinstvalues, percentileranges, rule = 2)$y %>% round(3))
+
+
+
+
+
+
 library(data.table)
 spliceTimeFlow <- function(spliced) #input as data.frame( Time, Data, QC)
 {

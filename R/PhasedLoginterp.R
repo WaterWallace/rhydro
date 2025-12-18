@@ -101,6 +101,7 @@
 #'
 #' @export
 #'
+#'
 PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL, invert = FALSE )
 {
   ## Didn't have time to work out the log conversions so just created a lookup table every millimetere.
@@ -183,10 +184,10 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL, invert = F
     if(period == max(nrow(periods)))
     {
       stagesubset <- stagedf %>%
-        filter(if_any(1, ~ .x >= start))
+        dplyr::filter(if_any(1, ~ .x >= start))
     }else{
       stagesubset <- stagedf %>%
-        filter(if_any(1, ~ .x >= start & .x < end))
+        dplyr::filter(if_any(1, ~ .x >= start & .x < end))
     }
 
     if(nrow(stagesubset) == 0) next    # no data in subset
@@ -204,8 +205,8 @@ PhasedLoginterp <- function(RatePer, points, stagedf, offsets = NULL, invert = F
         group_split()
       names(split_list) <- unique(offsets$TableNum)
 
-      thisLog <- split_list[[thistable]] %>% pull(logOffset)
-      nextLog <- split_list[[nexttable]] %>% pull(logOffset)
+      if( thisLog %in% (split_list %>% names) )  thisLog <- split_list[[thistable]] %>% pull(logOffset)
+      if( nextLog %in% (split_list %>% names) )  nextLog <- split_list[[nexttable]] %>% pull(logOffset)
     }
 
     if( ( periods %>% slice(period) %>% pull(Phased) ) & (period < nrow(periods)) ) # phased

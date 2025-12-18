@@ -47,5 +47,5 @@ rpAlign <- function(new.RP1, new.RP2, target.RP1, target.RP2)
   # angular shift is the degrees to rotate the cross section
   # to align with reference XS
   anglularShift <- rad2deg( reqangle - newangle )
-  return(anglularShift)
+  return(anglularShift[1])
 }

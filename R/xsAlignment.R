@@ -48,25 +48,36 @@ xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin =
 
   origin.new <- xs %>% dplyr::filter(rpid == originRP) %>% meanCoords # surveyed primary benchmark
   align.new <- xs %>% dplyr::filter(rpid == alignRP) %>% meanCoords # surveyd second point to adjust angle
+
   if(is.null(rp))
   {
     origin.RP <- xs %>% dplyr::filter(rpid == originRP) # stored primary benchmark
     align.RP <- xs %>% dplyr::filter(rpid == alignRP) # stored second benchmark
   }else{
     stopifnot("Not enough RP's" = nrow(rp) > 1 )
-    origin.RP <- rp %>% dplyr::filter(rpid == originRP) %>% arrange(time) %>% tail(1) # stored primary benchmark
-    align.RP <- rp %>% dplyr::filter(rpid == alignRP) %>% arrange(time) %>% tail(1) # stored second benchmark
+
+    origin.RP <- rp %>% dplyr::filter(rpid == originRP)# %>% arrange(time) %>% tail(1) # stored primary benchmark
+    align.RP <- rp %>% dplyr::filter(rpid == alignRP)# %>% arrange(time) %>% tail(1) # stored second benchmark
+
+    if("time" %in% origin.RP) origin.RP <- origin.RP %>% arrange(time) %>% tail(1) # stored primary benchmark
+    if("time" %in% align.RP) align.RP <- align.RP %>% arrange(time) %>% tail(1) # stored primary benchmark
+
   }
+
+  origin.RP <- origin.RP %>% meanCoords
+  align.RP <- align.RP %>% meanCoords
 
   #if no override angle
   if(is.null(angle))
   {
     # get adjustment angle against RP's
-    angle <- rpAlign(origin.new,
-                     align.new,
-                     origin.RP,
-                     align.RP)
+    angle <- rpAlign(new.RP1 = origin.new,
+                     new.RP2 = align.new,
+                     target.RP1 = origin.RP,
+                     target.RP2 = align.RP)
   }
+
+  print(angle)
 
   # rotate to original alignment
   rotated <- matrixRotate(xs, angle)
@@ -85,3 +96,9 @@ xsAlignment <- function(xs, rp = NULL, originRP, alignRP, angle = NULL, origin =
   )
 
 }
+
+
+
+
+
+

@@ -64,7 +64,7 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
     if(rating[rating[2] > 0] %>% length == 0){  return(min(rating[,1]) - 0.01) }
     if (logOffset > 0) return(logOffset)
 
-    ZeroQ <- rating %>% filter(.[[2]] <= 0)
+    ZeroQ <- rating %>% dplyr::filter(.[[2]] <= 0)
     if (nrow(ZeroQ) > 0) {
       return( logOffset <- max(ZeroQ[1]) )# max height, of outputs less than or equal to zero
     }
@@ -116,3 +116,12 @@ logInterpolate <- function (rating, num, logOffset = 0, base = 10)
     return(data.frame(value = interpvalue$q) )
   }
 }
+
+
+
+
+
+
+
+
+

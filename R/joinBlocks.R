@@ -74,7 +74,7 @@ joinBlocks <- function(original, infill, minGap = 120, minBlock = 120, typekey =
   if(infill[nrow(infill), 1] < original[nrow(original), 1]) {
     bottomrowinfill <- infill[nrow(infill),]
     names(bottomrowinfill) <- names(original)
-    original <- rbind(bottomrowinfill, original)
+    original <- rbind(original,bottomrowinfill)
   }
 
   gaplist <- original %>% GapList(minGap = minGap)

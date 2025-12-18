@@ -184,8 +184,35 @@ ceemdanFilter <- function(time, data, output=0, method="ceemdan", d1 = 16, d2 = 
     }else{
       return (NULL)
     }
+  }else if(method=="cci")
+  {
+    cciDecompose <- function(ts)
+    {
+
+      names(ts)[1] <- "Time"
+
+      # daily filtered
+      daily <- ts %>% ccInterpFilter(hours = 24)
+      ts$daily <- approx(daily$Date, daily$avg, ts[,1])$y
+
+      # residual (raw minus daily) i.e. whole tide
+      ts$tideonly <- ts[,2] - ts$daily
+      # decompose whole tide to get just the daily tide
+      d1 <- ts[,c(1,4)] %>% ccInterpFilter(hours = 12)
+
+      # residual (raw minus daily)
+      ts$d1 <- approx(d1$Date, d1$avg, ts[,1])$y
+
+      # therefore,
+      # residual (raw minus daily)
+      ts$d2 <- ts$tideonly - ts$d1
+
+      ts %>% dplyr::select(Time, d2, d1, daily)
+
+    }
+    return( cciDecompose(data) )
   }else{
-    message("method must be chosen: ceemdan or emd")
+    message("method must be chosen: ceemdan or emd (or cci)")
     return(0)
   }
 
