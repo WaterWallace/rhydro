@@ -6,7 +6,7 @@ on:
     - cron: "0 0 * * *"
 
 jobs:
-  run-r:
+  run-r-job:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,9 +19,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
 
-      - name: Install R packages
+      - name: Install packages
         run: |
           Rscript -e 'install.packages(c("dplyr","httr"), repos="https://cloud.r-project.org")'
 
       - name: Run script
         run: Rscript your_script.R
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fileslist-history
+          path: fileslist_*.RDS
