@@ -50,7 +50,7 @@ getCR6json2 <- function(username, pass, logger, port, suffix, timeout = NULL, ma
 
 suffix <- "/CRD/?command=ListFiles&format=json"
 
-logger <- "1120053wqi.is-a-techie.com"
+logger <- "1240062wqi.is-a-techie.com"
 #logger <- "wetlandtsl5.ddns.net"
 username <- "readonlyuser"
 pass <- Sys.getenv("READ_ONLY_PASS")
