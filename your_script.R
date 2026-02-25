@@ -52,7 +52,7 @@ suffix <- "/CRD/?command=ListFiles&format=json"
 logger <- "1120053wqi.is-a-techie.com"
 #logger <- "wetlandtsl5.ddns.net"
 username <- "readonlyuser"
-pass <- Sys.getenv("READ_ONLY_")
+pass <- Sys.getenv("READ_ONLY_PASS")
 port <- 997
 suffix <- "/CRD/?command=ListFiles&format=json"
 
