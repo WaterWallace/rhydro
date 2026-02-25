@@ -1,9 +1,11 @@
-
+library(dplyr)
+library(httr)
 
 getCR6json2 <- function(username, pass, logger, port, suffix, timeout = NULL, maxretry = 10, retrynum = 0)
 {
     
-    url <- paste("http://",username,":",pass,"@",logger,":",port,suffix,sep="")
+    url <- paste("http://",logger,":",port,suffix,sep="")
+    
     print(url)
     
     if(is.null(timeout)){
@@ -14,7 +16,7 @@ getCR6json2 <- function(username, pass, logger, port, suffix, timeout = NULL, ma
     
     jsondata <- tryCatch(
         {
-            httr::GET(url = url, httpTimeout)
+            httr::GET(url = url, httr::authenticate(username, pass), httpTimeout)
         },
         error = function(e){
             message("Error:")
@@ -25,7 +27,6 @@ getCR6json2 <- function(username, pass, logger, port, suffix, timeout = NULL, ma
             
         }
     )
-    #jsondata$content
     
     
     if ( is.null(jsondata) ){
