@@ -57,4 +57,8 @@ port <- 997
 suffix <- "/CRD/?command=ListFiles&format=json"
 
 fileslist <- getCR6json2(username, pass, logger, port, suffix, timeout = NULL)
-saveRDS(fileslist, "fileslist.RDS")
+
+timestamp <- format(Sys.time(), "%Y%m%d_%H%M%S")
+saveRDS(fileslist, paste0("fileslist_", timestamp, ".RDS"))
+
+
