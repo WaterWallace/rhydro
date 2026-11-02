@@ -104,12 +104,13 @@ EIO_Extract <- function (APIKEY, param, START, END = Sys.time() )
     ts = Node_content[["data"]][["ts"]],
     Node_content[["data"]][["f"]][["0"]]
   ) %>%
-    mutate(v = ifelse ("v" %in% names(.),v,NA),
-           q = ifelse ("q" %in% names(.),q,NA)) %>%
-    rename('Value' = 'v', 'Quality' = 'q') %>%
+    mutate(
+      v = if ("v" %in% names(.)) v else NA,
+      q = if ("q" %in% names(.)) q else NA
+    ) %>%
+    rename(Value = v, Quality = q) %>%
     mutate(name = vartype,
-           units = varunits
-    )
+           units = varunits)
 
   Data$ts <- as.POSIXct(Data$ts, format = "%Y-%m-%dT%H:%M:%S",
                         tz = "UTC")
